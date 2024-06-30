@@ -12,3 +12,128 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id                 String     @id @default(uuid())
+  email              String     @unique
+  password           String
+  role               UserRole
+  status             UserStatus @default(ACTIVE)
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+  event              Event[]    @relation("EventsOrganizer")
+  admin              Admin?
+  attendee           Attendee?
+  organizer          Organizer?
+
+  @@map("users")
+}
+
+model Admin {
+  id            String   @id @default(uuid())
+  name          String
+  email         String   @unique
+  profilePhoto  String?
+  isDeleted     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [email], references: [email])
+
+  @@map("admins")
+}
+
+model Attendee {
+  id            String   @id @default(uuid())
+  name          String
+  email         String   @unique
+  profilePhoto  String?
+  contactNumber String
+  address       String?
+  isDeleted     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [email], references: [email])
+
+  @@map("attendees")
+}
+
+model Organizer {
+  id            String   @id @default(uuid())
+  name          String
+  email         String   @unique
+  profilePhoto  String?
+  contactNumber String
+  organizationName String
+  websiteUrl    String?
+  socialMediaUrl String?
+  address       String?
+  isDeleted     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [email], references: [email])
+
+  @@map("organizers")
+}
+
+model Event {
+  id          String        @id @default(uuid())
+  organizerEmail String
+  name        String
+  description String?
+  date        DateTime
+  location    String?
+  imageUrl    String?
+  totalTicket Int
+  ticketSold Int @default(0)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  categories  EventCategory[]
+
+  organizer   User       @relation("EventsOrganizer", fields: [organizerEmail], references: [email])
+
+  @@map("events")
+}
+
+model Category {
+  id          String        @id @default(uuid())
+  name        String     @unique
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  events      EventCategory[]
+
+  @@map("categories")
+}
+
+model EventCategory {
+  eventId     String
+  categoryId  String
+
+  event       Event     @relation(fields: [eventId], references: [id])
+  category    Category  @relation(fields: [categoryId], references: [id])
+
+  @@id([eventId, categoryId])
+
+  @@map("event_categories")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  ORGANIZER
+  ATTENDEE
+}
+
+enum UserStatus {
+  ACTIVE
+  BLOCKED
+  DELETED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHERS
+}
