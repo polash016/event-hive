@@ -8,8 +8,8 @@ import prisma from '../../../shared/prisma'
 import { fileUploader } from '../../../helpers/fileUploader'
 import { TPaginationOptions } from '../../interfaces/pagination'
 import calculatePagination from '../../../helpers/paginationHelper'
-import { userSearchableField } from './user.const'
 import { JwtPayload } from 'jsonwebtoken'
+import { userFilterField, userSearchableField } from './user.const'
 
 const createAdmin = async (req: any) => {
   const file = req.file
@@ -25,7 +25,7 @@ const createAdmin = async (req: any) => {
     data.password,
     Number(config.salt_rounds),
   )
-  console.log(hashedPassword)
+
   const userData = {
     email: data.admin.email,
     password: hashedPassword,
@@ -59,7 +59,7 @@ const createOrganizer = async (req: any) => {
     data.password,
     Number(config.salt_rounds),
   )
-  console.log(hashedPassword)
+
   const userData = {
     email: data.organizer.email,
     password: hashedPassword,
@@ -86,16 +86,17 @@ const createAttendee = async (req: any) => {
   if (file) {
     const uploadToCloudinary = await fileUploader.uploadToCloudinary(file)
 
-    data.patient.profilePhoto = uploadToCloudinary?.secure_url
+    data.attendee.profilePhoto = uploadToCloudinary?.secure_url
   }
 
   const hashedPassword: string = await bcrypt.hash(
     data.password,
     Number(config.salt_rounds),
   )
-  console.log(hashedPassword)
+  console.log({ data })
+
   const userData = {
-    email: data.patient.email,
+    email: data.attendee.email,
     password: hashedPassword,
     role: UserRole.ATTENDEE,
   }
@@ -121,7 +122,7 @@ const getAllUsers = async (params: any, options: TPaginationOptions) => {
 
   if (params.searchTerm) {
     andConditions.push({
-      OR: userSearchableField.map(field => ({
+      OR: userFilterField.map(field => ({
         [field]: {
           contains: params.searchTerm,
           mode: 'insensitive',
@@ -139,6 +140,9 @@ const getAllUsers = async (params: any, options: TPaginationOptions) => {
       })),
     })
   }
+  andConditions.push({
+    status: 'ACTIVE',
+  })
 
   const whereConditions: Prisma.UserWhereInput =
     andConditions.length > 0 ? { AND: andConditions } : {}

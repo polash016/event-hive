@@ -21,14 +21,18 @@ router.get(
 
 router.get(
   '/my',
-  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
-  validateRequest(userValidation.updateProfileStatus),
-  userController.changeProfileStatus,
+  auth(
+    UserRole.ATTENDEE,
+    UserRole.ORGANIZER,
+    UserRole.ADMIN,
+    UserRole.SUPER_ADMIN,
+  ),
+  userController.getMyProfile,
 )
 
 router.post(
   '/create-admin',
-  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  // auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
   fileUploader.upload.single('file'),
   (req: Request, res: Response, next: NextFunction) => {
     req.body = userValidation.createAdmin.parse(JSON.parse(req.body.data))
@@ -37,23 +41,22 @@ router.post(
 )
 
 router.post(
-  '/create-doctor',
+  '/create-organizer',
   auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
   fileUploader.upload.single('file'),
   (req: Request, res: Response, next: NextFunction) => {
-    console.log(req.body)
-    req.body = userValidation.createDoctor.parse(JSON.parse(req.body.data))
-    return userController.createDoctor(req, res, next)
+    req.body = userValidation.createOrganizer.parse(JSON.parse(req.body.data))
+    return userController.createOrganizer(req, res, next)
   },
 )
 
 router.post(
-  '/create-patient',
+  '/create-attendee',
   auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
   fileUploader.upload.single('file'),
   (req: Request, res: Response, next: NextFunction) => {
-    req.body = userValidation.createPatient.parse(JSON.parse(req.body.data))
-    return userController.createPatient(req, res, next)
+    req.body = userValidation.createAttendee.parse(JSON.parse(req.body.data))
+    return userController.createAttendee(req, res, next)
   },
 )
 
