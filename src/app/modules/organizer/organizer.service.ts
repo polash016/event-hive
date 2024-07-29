@@ -42,7 +42,13 @@ const getAllOrganizer = async (
 
   const whereConditions: Prisma.OrganizerWhereInput = { AND: andConditions }
   const result = await prisma.organizer.findMany({
-    where: whereConditions,
+    where: {
+      ...whereConditions,
+      user: {
+        status: UserStatus.ACTIVE,
+      },
+    },
+
     skip,
     take: limit,
     orderBy:
@@ -53,6 +59,9 @@ const getAllOrganizer = async (
         : {
             createdAt: 'desc',
           },
+    include: {
+      user: true,
+    },
   })
 
   const total = await prisma.organizer.count({ where: whereConditions })

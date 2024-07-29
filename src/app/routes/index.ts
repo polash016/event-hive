@@ -4,6 +4,7 @@ import { AdminRoutes } from '../modules/admin/admin.routes'
 import { AuthRoutes } from '../modules/auth/auth.routes'
 import { EventRoutes } from '../modules/event/event.routes'
 import { AttendeeRoutes } from '../modules/attendee/attendee.routes'
+import { OrganizerRoutes } from '../modules/organizer/organizer.routes'
 
 const router = express.Router()
 
@@ -26,7 +27,7 @@ const moduleRoutes = [
   },
   {
     path: '/organizer',
-    route: EventRoutes,
+    route: OrganizerRoutes,
   },
   {
     path: '/event',
