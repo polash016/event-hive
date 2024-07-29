@@ -1,8 +1,3 @@
-export const adminFilterField = [
-  "searchTerm",
-  "name",
-  "email",
-  "contactNumber",
-];
+export const attendeeFilterField = ['searchTerm', 'name', 'email', 'gender']
 
-export const adminSearchFields = ["name", "email"];
+export const attendeeSearchFields = ['name', 'email', 'gender']

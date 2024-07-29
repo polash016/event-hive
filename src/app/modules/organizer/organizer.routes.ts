@@ -1,35 +1,35 @@
-import express from "express";
-import { adminController } from "./admin.controller";
-import validateRequest from "../../middlewares/validateRequest";
-import { AdminValidation } from "./admin.validation";
-import auth from "../../middlewares/auth";
-import { UserRole } from "@prisma/client";
+import express from 'express'
+import { UserRole } from '@prisma/client'
+import { organizerController } from './organizer.controller'
+import auth from '../../middlewares/auth'
+import validateRequest from '../../middlewares/validateRequest'
+import { OrganizerValidation } from './organizer.validation'
 
-const router = express.Router();
-
-router.get(
-  "/",
-  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
-  adminController.getAdmin
-);
+const router = express.Router()
 
 router.get(
-  "/:id",
+  '/',
   auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
-  adminController.getSingleAdmin
-);
+  organizerController.getOrganizers,
+)
+
+router.get(
+  '/:id',
+  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  organizerController.getSingleOrganizer,
+)
 
 router.patch(
-  "/:id",
+  '/:id',
   auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
-  validateRequest(AdminValidation.updateAdmin),
-  adminController.updateSingleAdmin
-);
+  validateRequest(OrganizerValidation.updateOrganizer),
+  organizerController.updateSingleOrganizer,
+)
 
 router.delete(
-  "/soft/:id",
+  '/soft/:id',
   auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
-  adminController.softDeleteSingleAdmin
-);
+  organizerController.deleteSingleOrganizer,
+)
 
-export const AdminRoutes = router;
+export const OrganizerRoutes = router

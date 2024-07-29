@@ -1,13 +1,12 @@
-import { z } from "zod";
+import { z } from 'zod'
 
-const updateAdmin = z.object({
+const updateOrganizer = z.object({
   body: z.object({
     name: z.string().optional(),
     contactNumber: z.string().optional(),
   }),
-});
+})
 
-
-export const AdminValidation = {
-  updateAdmin,
-};
+export const OrganizerValidation = {
+  updateOrganizer,
+}

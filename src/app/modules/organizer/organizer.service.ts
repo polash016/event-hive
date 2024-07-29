@@ -1,23 +1,23 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Admin, Prisma, UserStatus } from '@prisma/client'
-import { adminSearchFields } from './admin.constant'
-import calculatePagination from '../../../helpers/paginationHelper'
-import prisma from '../../../shared/prisma'
-import { TAdminFilterRequest } from './admin.interface'
+import { Organizer, Prisma, UserStatus } from '@prisma/client'
+import { TOrganizerFilterRequest } from './organizer.interface'
 import { TPaginationOptions } from '../../interfaces/pagination'
+import calculatePagination from '../../../helpers/paginationHelper'
+import { organizerSearchFields } from './organizer.constant'
+import prisma from '../../../shared/prisma'
 
-const getAllAdmin = async (
-  params: TAdminFilterRequest,
+const getAllOrganizer = async (
+  params: TOrganizerFilterRequest,
   options: TPaginationOptions,
 ) => {
   const { limit, page, skip } = calculatePagination(options)
-  const andConditions: Prisma.AdminWhereInput[] = []
+  const andConditions: Prisma.OrganizerWhereInput[] = []
 
   const { searchTerm, ...filterData } = params
 
   if (searchTerm) {
     andConditions.push({
-      OR: adminSearchFields.map(field => ({
+      OR: organizerSearchFields.map(field => ({
         [field]: {
           contains: params.searchTerm,
           mode: 'insensitive',
@@ -40,8 +40,8 @@ const getAllAdmin = async (
     isDeleted: false,
   })
 
-  const whereConditions: Prisma.AdminWhereInput = { AND: andConditions }
-  const result = await prisma.admin.findMany({
+  const whereConditions: Prisma.OrganizerWhereInput = { AND: andConditions }
+  const result = await prisma.organizer.findMany({
     where: whereConditions,
     skip,
     take: limit,
@@ -55,7 +55,7 @@ const getAllAdmin = async (
           },
   })
 
-  const total = await prisma.admin.count({ where: whereConditions })
+  const total = await prisma.organizer.count({ where: whereConditions })
 
   return {
     meta: {
@@ -67,8 +67,8 @@ const getAllAdmin = async (
   }
 }
 
-const getSingleAdmin = async (id: string): Promise<Admin | null> => {
-  const result = await prisma.admin.findUniqueOrThrow({
+const getSingleOrganizer = async (id: string): Promise<Organizer | null> => {
+  const result = await prisma.organizer.findUniqueOrThrow({
     where: {
       id: id,
       isDeleted: false,
@@ -78,11 +78,11 @@ const getSingleAdmin = async (id: string): Promise<Admin | null> => {
   return result
 }
 
-const updateAdmin = async (
+const updateOrganizer = async (
   id: string,
-  payload: Partial<Admin>,
-): Promise<Admin | null> => {
-  const result = await prisma.admin.update({
+  payload: Partial<Organizer>,
+): Promise<Organizer | null> => {
+  const result = await prisma.organizer.update({
     where: {
       id: id,
       isDeleted: false,
@@ -93,34 +93,8 @@ const updateAdmin = async (
   return result
 }
 
-const deleteAdmin = async (id: string) => {
-  await prisma.admin.findUniqueOrThrow({
-    where: {
-      id,
-    },
-  })
-
-  const result = await prisma.$transaction(async trans => {
-    const adminDelete = await trans.admin.delete({
-      where: {
-        id: id,
-      },
-    })
-
-    await trans.user.delete({
-      where: {
-        email: adminDelete.email,
-      },
-    })
-
-    return adminDelete
-  })
-
-  return result
-}
-
-const softDeleteAdmin = async (id: string) => {
-  await prisma.admin.findUniqueOrThrow({
+const softDeleteOrganizer = async (id: string) => {
+  await prisma.organizer.findUniqueOrThrow({
     where: {
       id,
       isDeleted: false,
@@ -128,7 +102,7 @@ const softDeleteAdmin = async (id: string) => {
   })
 
   const result = await prisma.$transaction(async trans => {
-    const adminDelete = await trans.admin.update({
+    const deleteOrganizer = await trans.organizer.update({
       where: {
         id: id,
       },
@@ -137,21 +111,20 @@ const softDeleteAdmin = async (id: string) => {
 
     await trans.user.update({
       where: {
-        email: adminDelete.email,
+        email: deleteOrganizer.email,
       },
       data: { status: UserStatus.DELETED },
     })
 
-    return adminDelete
+    return deleteOrganizer
   })
 
   return result
 }
 
-export const adminServices = {
-  getAllAdmin,
-  getSingleAdmin,
-  updateAdmin,
-  deleteAdmin,
-  softDeleteAdmin,
+export const organizerServices = {
+  getAllOrganizer,
+  getSingleOrganizer,
+  updateOrganizer,
+  softDeleteOrganizer,
 }

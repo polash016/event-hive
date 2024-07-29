@@ -1,8 +1,9 @@
-export const adminFilterField = [
-  "searchTerm",
-  "name",
-  "email",
-  "contactNumber",
-];
+export const organizerFilterField = [
+  'searchTerm',
+  'name',
+  'email',
+  'contactNumber',
+  'organizationName',
+]
 
-export const adminSearchFields = ["name", "email"];
+export const organizerSearchFields = ['name', 'email', 'organizationName']

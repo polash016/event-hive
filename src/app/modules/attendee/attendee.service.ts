@@ -1,23 +1,24 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Admin, Prisma, UserStatus } from '@prisma/client'
-import { adminSearchFields } from './admin.constant'
-import calculatePagination from '../../../helpers/paginationHelper'
-import prisma from '../../../shared/prisma'
-import { TAdminFilterRequest } from './admin.interface'
-import { TPaginationOptions } from '../../interfaces/pagination'
 
-const getAllAdmin = async (
-  params: TAdminFilterRequest,
+import { Attendee, Prisma, UserStatus } from '@prisma/client'
+import calculatePagination from '../../../helpers/paginationHelper'
+import { TPaginationOptions } from '../../interfaces/pagination'
+import { TAttendeeFilterRequest } from './attendee.interface'
+import { attendeeSearchFields } from './attendee.constant'
+import prisma from '../../../shared/prisma'
+
+const getAllAttendee = async (
+  params: TAttendeeFilterRequest,
   options: TPaginationOptions,
 ) => {
   const { limit, page, skip } = calculatePagination(options)
-  const andConditions: Prisma.AdminWhereInput[] = []
+  const andConditions: Prisma.AttendeeWhereInput[] = []
 
   const { searchTerm, ...filterData } = params
 
   if (searchTerm) {
     andConditions.push({
-      OR: adminSearchFields.map(field => ({
+      OR: attendeeSearchFields.map(field => ({
         [field]: {
           contains: params.searchTerm,
           mode: 'insensitive',
@@ -40,8 +41,8 @@ const getAllAdmin = async (
     isDeleted: false,
   })
 
-  const whereConditions: Prisma.AdminWhereInput = { AND: andConditions }
-  const result = await prisma.admin.findMany({
+  const whereConditions: Prisma.AttendeeWhereInput = { AND: andConditions }
+  const result = await prisma.attendee.findMany({
     where: whereConditions,
     skip,
     take: limit,
@@ -55,7 +56,7 @@ const getAllAdmin = async (
           },
   })
 
-  const total = await prisma.admin.count({ where: whereConditions })
+  const total = await prisma.attendee.count({ where: whereConditions })
 
   return {
     meta: {
@@ -67,8 +68,8 @@ const getAllAdmin = async (
   }
 }
 
-const getSingleAdmin = async (id: string): Promise<Admin | null> => {
-  const result = await prisma.admin.findUniqueOrThrow({
+const getSingleAttendee = async (id: string): Promise<Attendee | null> => {
+  const result = await prisma.attendee.findUniqueOrThrow({
     where: {
       id: id,
       isDeleted: false,
@@ -78,11 +79,11 @@ const getSingleAdmin = async (id: string): Promise<Admin | null> => {
   return result
 }
 
-const updateAdmin = async (
+const updateAttendee = async (
   id: string,
-  payload: Partial<Admin>,
-): Promise<Admin | null> => {
-  const result = await prisma.admin.update({
+  payload: Partial<Attendee>,
+): Promise<Attendee | null> => {
+  const result = await prisma.attendee.update({
     where: {
       id: id,
       isDeleted: false,
@@ -93,34 +94,8 @@ const updateAdmin = async (
   return result
 }
 
-const deleteAdmin = async (id: string) => {
-  await prisma.admin.findUniqueOrThrow({
-    where: {
-      id,
-    },
-  })
-
-  const result = await prisma.$transaction(async trans => {
-    const adminDelete = await trans.admin.delete({
-      where: {
-        id: id,
-      },
-    })
-
-    await trans.user.delete({
-      where: {
-        email: adminDelete.email,
-      },
-    })
-
-    return adminDelete
-  })
-
-  return result
-}
-
-const softDeleteAdmin = async (id: string) => {
-  await prisma.admin.findUniqueOrThrow({
+const softDeleteAttendee = async (id: string) => {
+  await prisma.attendee.findUniqueOrThrow({
     where: {
       id,
       isDeleted: false,
@@ -128,7 +103,7 @@ const softDeleteAdmin = async (id: string) => {
   })
 
   const result = await prisma.$transaction(async trans => {
-    const adminDelete = await trans.admin.update({
+    const adminDelete = await trans.attendee.update({
       where: {
         id: id,
       },
@@ -148,10 +123,9 @@ const softDeleteAdmin = async (id: string) => {
   return result
 }
 
-export const adminServices = {
-  getAllAdmin,
-  getSingleAdmin,
-  updateAdmin,
-  deleteAdmin,
-  softDeleteAdmin,
+export const attendeeServices = {
+  getAllAttendee,
+  getSingleAttendee,
+  updateAttendee,
+  softDeleteAttendee,
 }
