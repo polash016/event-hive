@@ -83,7 +83,7 @@ model Organizer {
 
 model Event {
   id          String        @id @default(uuid())
-  organizerEmail String
+  organizerId String
   name        String
   description String?
   date        DateTime
@@ -91,13 +91,28 @@ model Event {
   imageUrl    String?
   totalTicket Int
   ticketSold Int @default(0)
+  status EventStatus
+  isDeleted Boolean @default(false)
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   categories  EventCategory[]
+  images EventImage[]
 
-  organizer   User       @relation("EventsOrganizer", fields: [organizerEmail], references: [email])
+  organizer   User       @relation("EventsOrganizer", fields: [organizerId], references: [id])
 
   @@map("events")
+}
+
+model EventImage {
+  id        String   @id @default(uuid())
+  eventId   String
+  imageUrl  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  event     Event    @relation(fields: [eventId], references: [id])
+
+  @@map("event_images")
 }
 
 model Category {
@@ -139,4 +154,10 @@ enum Gender {
   MALE
   FEMALE
   OTHERS
+}
+
+enum EventStatus {
+  UPCOMING
+  ONGOING
+  ENDED
 }
