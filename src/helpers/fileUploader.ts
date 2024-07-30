@@ -41,7 +41,13 @@ const uploadToCloudinary = async (
   })
 }
 
+const uploadFilesToCloudinary = async (files: IFile[]) => {
+  const uploadPromises = files.map(file => uploadToCloudinary(file))
+  return Promise.all(uploadPromises)
+}
+
 export const fileUploader = {
   upload,
   uploadToCloudinary,
+  uploadFilesToCloudinary,
 }

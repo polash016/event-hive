@@ -60,7 +60,11 @@ const getAllOrganizer = async (
             createdAt: 'desc',
           },
     include: {
-      user: true,
+      user: {
+        include: {
+          event: true,
+        },
+      },
     },
   })
 

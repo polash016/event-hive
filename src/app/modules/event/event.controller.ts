@@ -5,6 +5,17 @@ import sendResponse from '../../../shared/sendResponse'
 import { eventFilterField } from './event.constant'
 import { eventServices } from './event.service'
 
+const createEvent = catchAsync(async (req, res) => {
+  const result = await eventServices.createEvent(req)
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Event Created successfully!',
+    data: result,
+  })
+})
+
 const getAllEvent = catchAsync(async (req, res) => {
   const filters = pick(req.query, eventFilterField)
   const options = pick(req.query, ['limit', 'page', 'sortBy', 'sortOrder'])
@@ -42,17 +53,18 @@ const updateEvent = catchAsync(async (req, res) => {
 })
 
 const deleteEvent = catchAsync(async (req, res) => {
-  const result = await eventServices.softDeleteEvent(req.params.id)
+  const result = await eventServices.deleteEvent(req.params.id)
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Admin data deleted!',
+    message: 'Event data deleted!',
     data: result,
   })
 })
 
 export const eventController = {
+  createEvent,
   getAllEvent,
   getSingleEvent,
   updateEvent,

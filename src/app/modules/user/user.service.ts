@@ -234,6 +234,13 @@ const getProfile = async (user: JwtPayload) => {
       where: {
         email: userInfo.email,
       },
+      include: {
+        user: {
+          include: {
+            event: true,
+          },
+        },
+      },
     })
   } else if (userInfo.role === UserRole.ATTENDEE) {
     profileInfo = await prisma.attendee.findUnique({

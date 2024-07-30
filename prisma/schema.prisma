@@ -21,7 +21,7 @@ model User {
   status             UserStatus @default(ACTIVE)
   createdAt          DateTime   @default(now())
   updatedAt          DateTime   @updatedAt
-  event              Event[]    @relation("EventsOrganizer")
+  event              Event[]    
   admin              Admin?
   attendee           Attendee?
   organizer          Organizer?
@@ -87,20 +87,32 @@ model Event {
   name        String
   description String?
   date        DateTime
-  location    String?
-  imageUrl    String?
   totalTicket Int
   ticketSold Int @default(0)
   status EventStatus
   isDeleted Boolean @default(false)
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
+  location    EventLocation?
   categories  EventCategory[]
   images EventImage[]
 
-  organizer   User       @relation("EventsOrganizer", fields: [organizerId], references: [id])
+  organizer   User       @relation(fields: [organizerId], references: [id])
 
   @@map("events")
+}
+
+model EventLocation {
+  id     String        @id @default(uuid())
+  eventId String @unique
+  street String
+  city String
+  country String
+  
+  event     Event    @relation(fields: [eventId], references: [id])
+
+  @@map("event_location")
+
 }
 
 model EventImage {

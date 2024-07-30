@@ -1,9 +1,10 @@
-import express from 'express'
+import express, { NextFunction, Request, Response } from 'express'
 import { UserRole } from '@prisma/client'
 import auth from '../../middlewares/auth'
 import { eventController } from './event.controller'
 import validateRequest from '../../middlewares/validateRequest'
 import { EventValidation } from './event.validation'
+import { fileUploader } from '../../../helpers/fileUploader'
 
 const router = express.Router()
 
@@ -18,6 +19,21 @@ router.get(
   auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
   eventController.getSingleEvent,
 )
+router.delete(
+  '/:id',
+  // auth(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.ORGANIZER),
+  eventController.deleteEvent,
+)
+
+router.post(
+  '/create-event',
+  auth(UserRole.ORGANIZER, UserRole.SUPER_ADMIN),
+  fileUploader.upload.array('files'),
+  (req: Request, res: Response, next: NextFunction) => {
+    req.body = EventValidation.createEvent.parse(JSON.parse(req.body.data))
+    return eventController.createEvent(req, res, next)
+  },
+)
 
 router.patch(
   '/:id',
@@ -26,10 +42,10 @@ router.patch(
   eventController.updateEvent,
 )
 
-router.delete(
-  '/soft/:id',
-  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
-  eventController.deleteEvent,
-)
+// router.delete(
+//   '/soft/:id',
+//   auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+//   eventController.deleteEvent,
+// )
 
 export const EventRoutes = router

@@ -1,11 +1,75 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
-import { Event, Prisma, UserStatus } from '@prisma/client'
+import { Event, Prisma } from '@prisma/client'
 import calculatePagination from '../../../helpers/paginationHelper'
 import { TPaginationOptions } from '../../interfaces/pagination'
 import { TEventFilterRequest } from './event.interface'
 import { eventSearchFields } from './event.constant'
 import prisma from '../../../shared/prisma'
+import { fileUploader } from '../../../helpers/fileUploader'
+
+const createEvent = async (req: any) => {
+  const files = req.files
+  const data = req.body
+
+  const { street, city, country, ...eventData } = data
+
+  const location: {
+    street: string
+    city: string
+    country: string
+  } = { street, city, country }
+
+  const user = await prisma.user.findUniqueOrThrow({
+    where: {
+      email: req.user.email,
+    },
+  })
+
+  eventData.organizerId = user.id
+
+  console.log(location)
+
+  const result = await prisma.$transaction(async trans => {
+    const result = await trans.event.create({
+      data: eventData,
+    })
+
+    await trans.eventLocation.create({
+      data: { ...location, eventId: result.id },
+    })
+
+    return result
+  })
+
+  if (files) {
+    const uploadToCloudinary = await fileUploader.uploadFilesToCloudinary(files)
+
+    uploadToCloudinary.forEach(async file => {
+      if (file?.secure_url) {
+        const data = {
+          eventId: result.id,
+          imageUrl: file?.secure_url,
+        }
+
+        await prisma.eventImage.create({
+          data: data,
+        })
+      }
+    })
+  }
+
+  const dataWithImage = await prisma.event.findUniqueOrThrow({
+    where: {
+      id: result.id,
+    },
+    include: {
+      images: true,
+      location: true,
+    },
+  })
+
+  return dataWithImage
+}
 
 const getAllEvent = async (
   params: TEventFilterRequest,
@@ -54,6 +118,9 @@ const getAllEvent = async (
         : {
             createdAt: 'desc',
           },
+    include: {
+      images: true,
+    },
   })
 
   const total = await prisma.event.count({ where: whereConditions })
@@ -95,64 +162,35 @@ const updateEvent = async (
 }
 
 const deleteEvent = async (id: string) => {
-  await prisma.admin.findUniqueOrThrow({
+  await prisma.event.findUniqueOrThrow({
     where: {
       id,
     },
   })
 
   const result = await prisma.$transaction(async trans => {
-    const adminDelete = await trans.admin.delete({
+    await trans.eventImage.deleteMany({
       where: {
-        id: id,
+        eventId: id,
       },
     })
 
-    await trans.user.delete({
+    const deletedEvent = await trans.event.delete({
       where: {
-        email: adminDelete.email,
+        id,
       },
     })
 
-    return adminDelete
-  })
-
-  return result
-}
-
-const softDeleteEvent = async (id: string) => {
-  await prisma.admin.findUniqueOrThrow({
-    where: {
-      id,
-      isDeleted: false,
-    },
-  })
-
-  const result = await prisma.$transaction(async trans => {
-    const adminDelete = await trans.admin.update({
-      where: {
-        id: id,
-      },
-      data: { isDeleted: true },
-    })
-
-    await trans.user.update({
-      where: {
-        email: adminDelete.email,
-      },
-      data: { status: UserStatus.DELETED },
-    })
-
-    return adminDelete
+    return deletedEvent
   })
 
   return result
 }
 
 export const eventServices = {
+  createEvent,
   getAllEvent,
   getSingleEvent,
   updateEvent,
   deleteEvent,
-  softDeleteEvent,
 }
