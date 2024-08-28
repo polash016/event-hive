@@ -42,6 +42,7 @@ const createAdmin = async (req: any) => {
     })
     return createAdminData
   })
+
   return result
 }
 

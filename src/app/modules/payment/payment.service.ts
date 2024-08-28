@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import prisma from '../../../shared/prisma'
 import config from '../../config'
 import axios from 'axios'
@@ -19,12 +20,14 @@ const initPayment = async (id: string, email: string) => {
     },
   })
 
+  const transactionId = uuidv4()
+
   const data = {
     store_id: config.ssl_store_id,
     store_passwd: config.ssl_api_key,
     total_amount: event.ticketPrice,
     currency: 'BDT',
-    tran_id: uuidv4(),
+    tran_id: transactionId,
     success_url: config.ssl_success_url,
     fail_url: config.ssl_fail_url,
     cancel_url: config.ssl_cancel_url,
@@ -52,6 +55,17 @@ const initPayment = async (id: string, email: string) => {
     ship_country: 'Bangladesh',
   }
 
+  await prisma.payment.create({
+    data: {
+      userId: user.id,
+      eventId: event.id,
+      transactionId: data.tran_id,
+      amount: event.ticketPrice,
+      currency: 'BDT',
+      paymentStatus: 'PENDING',
+    },
+  })
+
   const res = await axios({
     method: 'POST',
     url: config.ssl_payment_api,
@@ -62,6 +76,64 @@ const initPayment = async (id: string, email: string) => {
   return { paymentUrl: res.data.GatewayPageURL }
 }
 
+const validatePayment = async (query: Record<string, any>) => {
+  if (!query || !(query.status === 'VALID')) {
+    return {
+      message: 'Invalid Payment',
+    }
+  }
+
+  const res = await axios({
+    method: 'GET',
+    url: `${config.ssl_validation_api}?val_id=${query.val_id}&store_id=${config.ssl_store_id}&store_passwd=${config.ssl_api_key}&format=json`,
+  })
+
+  if (res.data.status !== 'VALID') {
+    return {
+      message: 'Payment Failed',
+    }
+  }
+
+  const payment = await prisma.payment.findUniqueOrThrow({
+    where: {
+      transactionId: query.tran_id,
+    },
+  })
+
+  await prisma.$transaction(async trans => {
+    await trans.payment.update({
+      where: {
+        transactionId: query.tran_id,
+      },
+      data: {
+        paymentStatus: 'COMPLETED',
+        paymentMethod: res.data.card_type,
+        paymentGatewayData: res.data,
+      },
+    })
+
+    await trans.event.update({
+      where: {
+        id: payment.eventId,
+      },
+      data: {
+        ticketSold: {
+          increment: 1,
+        },
+        totalTicket: {
+          decrement: 1,
+        },
+      },
+    })
+  })
+
+  return {
+    message: 'Payment Successful',
+    paymentDetails: res.data,
+  }
+}
+
 export const paymentService = {
   initPayment,
+  validatePayment,
 }

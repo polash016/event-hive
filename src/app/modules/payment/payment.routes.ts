@@ -10,4 +10,6 @@ router.post(
   paymentController.initPayment,
 )
 
+router.post('/ipn', auth(UserRole.ATTENDEE), paymentController.validatePayment)
+
 export const PaymentRoutes = router
