@@ -1,35 +1,35 @@
-import express from "express";
-import { adminController } from "./admin.controller";
-import validateRequest from "../../middlewares/validateRequest";
-import { AdminValidation } from "./admin.validation";
-import auth from "../../middlewares/auth";
-import { UserRole } from "@prisma/client";
+import express from 'express'
+import { adminController } from './admin.controller'
+import validateRequest from '../../middlewares/validateRequest'
+import { AdminValidation } from './admin.validation'
+import auth from '../../middlewares/auth'
+import { UserRole } from '@prisma/client'
 
-const router = express.Router();
-
-router.get(
-  "/",
-  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
-  adminController.getAdmin
-);
+const router = express.Router()
 
 router.get(
-  "/:id",
+  '/',
   auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
-  adminController.getSingleAdmin
-);
+  adminController.getAdmin,
+)
+
+router.get(
+  '/:id',
+  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  adminController.getSingleAdmin,
+)
 
 router.patch(
-  "/:id",
+  '/:id',
   auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
   validateRequest(AdminValidation.updateAdmin),
-  adminController.updateSingleAdmin
-);
+  adminController.updateSingleAdmin,
+)
 
 router.delete(
-  "/soft/:id",
+  '/:id',
   auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
-  adminController.softDeleteSingleAdmin
-);
+  adminController.softDeleteSingleAdmin,
+)
 
-export const AdminRoutes = router;
+export const AdminRoutes = router

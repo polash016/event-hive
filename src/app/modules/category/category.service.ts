@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Organizer, Prisma, User, UserStatus } from '@prisma/client'
+import { Organizer, Prisma, UserStatus } from '@prisma/client'
 import { TOrganizerFilterRequest } from './organizer.interface'
 import { TPaginationOptions } from '../../interfaces/pagination'
 import calculatePagination from '../../../helpers/paginationHelper'
@@ -80,14 +80,11 @@ const getAllOrganizer = async (
   }
 }
 
-const getSingleOrganizer = async (id: string): Promise<User | null> => {
-  const result = await prisma.user.findUniqueOrThrow({
+const getSingleOrganizer = async (id: string): Promise<Organizer | null> => {
+  const result = await prisma.organizer.findUniqueOrThrow({
     where: {
       id: id,
-      status: UserStatus.ACTIVE,
-    },
-    include: {
-      organizer: true,
+      isDeleted: false,
     },
   })
 
@@ -118,23 +115,18 @@ const softDeleteOrganizer = async (id: string) => {
   })
 
   const result = await prisma.$transaction(async trans => {
-    const deleteOrganizer = await trans.organizer.delete({
+    const deleteOrganizer = await trans.organizer.update({
       where: {
         id: id,
       },
+      data: { isDeleted: true },
     })
 
-    await trans.user.delete({
+    await trans.user.update({
       where: {
         email: deleteOrganizer.email,
       },
-    })
-
-    await trans.event.updateMany({
-      where: {
-        organizerId: deleteOrganizer.id,
-      },
-      data: { isDeleted: true },
+      data: { status: UserStatus.DELETED },
     })
 
     return deleteOrganizer

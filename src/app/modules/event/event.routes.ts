@@ -10,7 +10,7 @@ const router = express.Router()
 
 router.get(
   '/',
-  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  // auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
   eventController.getAllEvent,
 )
 
@@ -28,9 +28,13 @@ router.delete(
 router.post(
   '/create-event',
   auth(UserRole.ORGANIZER, UserRole.SUPER_ADMIN),
-  fileUploader.upload.array('files'),
+  fileUploader.upload.fields([
+    { name: 'events', maxCount: 10 },
+    { name: 'speaker', maxCount: 1 },
+    { name: 'artist', maxCount: 1 },
+  ]),
   (req: Request, res: Response, next: NextFunction) => {
-    req.body = EventValidation.createEvent.parse(JSON.parse(req.body.data))
+    req.body = JSON.parse(req.body.data) //EventValidation.createEvent.parse(JSON.parse(req.body.data))
     return eventController.createEvent(req, res, next)
   },
 )

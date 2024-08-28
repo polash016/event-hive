@@ -86,21 +86,55 @@ model Event {
   organizerId String
   name        String
   description String?
-  date        DateTime
+  dateTime    DateTime
+  ticketPrice Int
   totalTicket Int
   ticketSold Int @default(0)
-  status EventStatus
+  status EventStatus @default(UPCOMING)
+  type EventType
   isDeleted Boolean @default(false)
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   location    EventLocation?
-  categories  EventCategory[]
   images EventImage[]
+  artist Artist?
+  speaker Speaker?
 
   organizer   User       @relation(fields: [organizerId], references: [id])
 
   @@map("events")
 }
+
+model Artist {
+  id          String   @id @default(uuid())
+  eventId     String @unique
+  name        String
+  bio         String?
+  imageUrl    String?
+  genre       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  event       Event    @relation(fields: [eventId], references: [id])
+
+  @@map("artists")
+}
+
+model Speaker {
+  id          String   @id @default(uuid())
+  eventId     String @unique
+  name        String
+  bio         String?
+  imageUrl    String?
+  expertise   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  event       Event    @relation(fields: [eventId], references: [id])
+
+  @@map("speakers")
+}
+
 
 model EventLocation {
   id     String        @id @default(uuid())
@@ -115,6 +149,7 @@ model EventLocation {
 
 }
 
+
 model EventImage {
   id        String   @id @default(uuid())
   eventId   String
@@ -127,27 +162,27 @@ model EventImage {
   @@map("event_images")
 }
 
-model Category {
-  id          String        @id @default(uuid())
-  name        String     @unique
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  events      EventCategory[]
+// model Category {
+//   id          String        @id @default(uuid())
+//   name        String     @unique
+//   createdAt   DateTime   @default(now())
+//   updatedAt   DateTime   @updatedAt
+//   events      EventCategory[]
 
-  @@map("categories")
-}
+//   @@map("categories")
+// }
 
-model EventCategory {
-  eventId     String
-  categoryId  String
+// model EventCategory {
+//   eventId     String
+//   categoryId  String
 
-  event       Event     @relation(fields: [eventId], references: [id])
-  category    Category  @relation(fields: [categoryId], references: [id])
+//   event       Event     @relation(fields: [eventId], references: [id])
+//   category    Category  @relation(fields: [categoryId], references: [id])
 
-  @@id([eventId, categoryId])
+//   @@id([eventId, categoryId])
 
-  @@map("event_categories")
-}
+//   @@map("event_categories")
+// }
 
 enum UserRole {
   SUPER_ADMIN
@@ -172,4 +207,9 @@ enum EventStatus {
   UPCOMING
   ONGOING
   ENDED
+}
+
+enum EventType {
+  CONCERT
+  CONFERENCE
 }

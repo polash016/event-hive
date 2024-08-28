@@ -52,7 +52,7 @@ router.post(
 
 router.post(
   '/create-attendee',
-  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  // auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
   fileUploader.upload.single('file'),
   (req: Request, res: Response, next: NextFunction) => {
     req.body = userValidation.createAttendee.parse(JSON.parse(req.body.data))

@@ -20,7 +20,7 @@ const loginUser = async (payload: { email: string; password: string }) => {
   const isPasswordCorrect = await bcrypt.compare(password, user.password)
 
   if (!isPasswordCorrect) {
-    throw new AppError(httpStatus.UNAUTHORIZED, 'Invalid credentials')
+    throw new AppError(httpStatus.UNAUTHORIZED, 'Incorrect Password')
   }
 
   const jwtPayload = { email: user.email, role: user.role }

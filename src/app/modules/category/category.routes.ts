@@ -9,7 +9,7 @@ const router = express.Router()
 
 router.get(
   '/',
-  // auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
   organizerController.getOrganizers,
 )
 
@@ -27,7 +27,7 @@ router.patch(
 )
 
 router.delete(
-  '/:id',
+  '/soft/:id',
   auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
   organizerController.deleteSingleOrganizer,
 )

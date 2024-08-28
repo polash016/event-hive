@@ -1,7 +1,7 @@
-import dotenv from "dotenv";
-import path from "path";
+import dotenv from 'dotenv'
+import path from 'path'
 
-dotenv.config({ path: path.join(process.cwd(), ".env") });
+dotenv.config({ path: path.join(process.cwd(), '.env') })
 
 export default {
   env: process.env.NODE_ENV,
@@ -17,4 +17,11 @@ export default {
   reset_pass_link: process.env.RESET_PASS_LINK,
   email: process.env.EMAIL,
   send_email_pass: process.env.SEND_EMAIL_PASS,
-};
+  ssl_store_id: process.env.SSL_STORE_ID,
+  ssl_api_key: process.env.SSL_API_KEY,
+  ssl_payment_api: process.env.SSL_PAYMENT_API,
+  ssl_validation_api: process.env.SSL_VALIDATION_API,
+  ssl_success_url: process.env.SSL_SUCCESS_URL,
+  ssl_fail_url: process.env.SSL_FAIL_URL,
+  ssl_cancel_url: process.env.SSL_CANCEL_URL,
+}
