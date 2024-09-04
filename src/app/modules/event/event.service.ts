@@ -14,11 +14,13 @@ const createEvent = async (req: any) => {
   const files = req?.files
   const data = req.body
 
+  console.log(files)
+
   const eventImages = files?.events
 
-  const speakerImage = files?.speaker
+  const speakerImage = files?.speakerImg
 
-  const artistImage = files?.artist
+  const artistImage = files?.artistImg
 
   const { event, location, artist, speaker } = data
 
