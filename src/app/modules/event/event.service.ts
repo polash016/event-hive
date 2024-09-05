@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Event, EventType, Prisma } from '@prisma/client'
+import { Event, EventType, Prisma, UserRole } from '@prisma/client'
 import calculatePagination from '../../../helpers/paginationHelper'
 import { TPaginationOptions } from '../../interfaces/pagination'
 import { TEventFilterRequest } from './event.interface'
@@ -133,11 +133,17 @@ const createEvent = async (req: any) => {
 const getAllEvent = async (
   params: TEventFilterRequest,
   options: TPaginationOptions,
+  email: string,
 ) => {
   const { limit, page, skip } = calculatePagination(options)
   const andConditions: Prisma.EventWhereInput[] = []
 
   const { searchTerm, ...filterData } = params
+
+  const user = await prisma.user.findUniqueOrThrow({
+    where: { email },
+    select: { id: true, role: true },
+  })
 
   if (searchTerm) {
     andConditions.push({
@@ -163,6 +169,12 @@ const getAllEvent = async (
   andConditions.push({
     isDeleted: false,
   })
+
+  if (user.role === UserRole.ORGANIZER) {
+    andConditions.push({
+      organizerId: user?.id,
+    })
+  }
 
   const whereConditions: Prisma.EventWhereInput = { AND: andConditions }
   const result = await prisma.event.findMany({
@@ -202,6 +214,12 @@ const getSingleEvent = async (id: string): Promise<Event | null> => {
     where: {
       id: id,
       isDeleted: false,
+    },
+    include: {
+      images: true,
+      location: true,
+      speaker: true,
+      artist: true,
     },
   })
 

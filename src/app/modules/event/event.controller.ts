@@ -20,7 +20,11 @@ const getAllEvent = catchAsync(async (req, res) => {
   const filters = pick(req.query, eventFilterField)
   const options = pick(req.query, ['limit', 'page', 'sortBy', 'sortOrder'])
 
-  const result = await eventServices.getAllEvent(filters, options)
+  const result = await eventServices.getAllEvent(
+    filters,
+    options,
+    req?.user?.email,
+  )
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
