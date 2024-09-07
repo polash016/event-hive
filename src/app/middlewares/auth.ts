@@ -20,6 +20,16 @@ const auth = (...roles: string[]) => {
         config.jwt_secret as Secret,
       )
 
+      if (!verifyUser) {
+        return {
+          message: 'Token is invalid',
+        }
+      }
+
+      // const currentTimestamp = Math.floor(Date.now() / 1000)
+
+      // const isTokenExpired = currentTimestamp > (verifyUser.exp as number)
+
       req.user = verifyUser
 
       if (roles.length && !roles.includes(verifyUser.role)) {

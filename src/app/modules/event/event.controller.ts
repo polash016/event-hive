@@ -46,7 +46,7 @@ const getSingleEvent = catchAsync(async (req, res) => {
 })
 
 const updateEvent = catchAsync(async (req, res) => {
-  const result = await eventServices.updateEvent(req.params.id, req.body)
+  const result = await eventServices.updateEvent(req.params.id, req)
 
   sendResponse(res, {
     statusCode: httpStatus.OK,

@@ -14,8 +14,6 @@ const createEvent = async (req: any) => {
   const files = req?.files
   const data = req.body
 
-  console.log(files)
-
   const eventImages = files?.events
 
   const speakerImage = files?.speakerImg
@@ -226,18 +224,143 @@ const getSingleEvent = async (id: string): Promise<Event | null> => {
   return result
 }
 
-const updateEvent = async (
-  id: string,
-  payload: Partial<Event>,
-): Promise<Event | null> => {
-  const result = await prisma.event.update({
+const updateEvent = async (id: string, req: any): Promise<Event | null> => {
+  const files = req?.files
+  const data = req?.body
+
+  const eventImages = files?.events
+
+  const speakerImage = files?.speakerImg
+
+  const artistImage = files?.artistImg
+
+  const { event, location, artist, speaker } = data
+
+  console.log({ speaker })
+  const { date, startTime, ...eventData } = event
+
+  const existingEvent = await prisma.event.findUniqueOrThrow({
     where: {
-      id: id,
-      isDeleted: false,
+      id,
     },
-    data: payload,
+    include: {
+      location: true,
+      artist: true,
+      speaker: true,
+    },
   })
 
+  if (date && startTime) {
+    const [hours, minutes] = startTime.split(':').map(Number)
+
+    const baseDate = new Date(format(date, 'yyyy-MM-dd'))
+    const dateTime = add(baseDate, {
+      hours: hours,
+      minutes: minutes,
+    })
+    eventData.dateTime = dateTime
+  }
+
+  if (eventData?.dateTime) {
+    const existingEventSchedule = await prisma.event.findFirst({
+      where: {
+        id: { not: id },
+        dateTime: eventData?.dateTime || '',
+      },
+    })
+
+    if (existingEventSchedule) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        'Already Booked for this Schedule',
+      )
+    }
+  }
+
+  if (artistImage) {
+    const uploadToCloudinary = await fileUploader.uploadToCloudinary(
+      artistImage[0],
+    )
+    artist.imageUrl = uploadToCloudinary?.secure_url
+  }
+
+  if (speakerImage) {
+    const uploadToCloudinary = await fileUploader.uploadToCloudinary(
+      speakerImage[0],
+    )
+
+    speaker.imageUrl = uploadToCloudinary?.secure_url
+  }
+
+  await prisma.$transaction(async trans => {
+    let updatedEvent
+    if (eventData) {
+      updatedEvent = await trans.event.update({
+        where: {
+          id,
+        },
+        data: { ...eventData },
+      })
+    }
+
+    if (location && (location.street || location.city || location.country))
+      await trans.eventLocation.update({
+        where: {
+          id: existingEvent.location?.id,
+        },
+        data: { ...location },
+      })
+
+    if (artist && (artist.name || artist.bio || artist.genre)) {
+      await trans.artist.update({
+        where: {
+          id: existingEvent.artist?.id,
+        },
+        data: { ...artist },
+      })
+    }
+
+    if (speaker && (speaker.name || speaker.bio || speaker.expertise)) {
+      await trans.speaker.update({
+        where: {
+          id: existingEvent.speaker?.id,
+        },
+        data: { ...speaker },
+      })
+    }
+
+    return updatedEvent
+  })
+
+  if (eventImages) {
+    const uploadToCloudinary =
+      await fileUploader.uploadFilesToCloudinary(eventImages)
+
+    uploadToCloudinary.forEach(async file => {
+      if (file?.secure_url) {
+        const data = {
+          eventId: id,
+          imageUrl: file?.secure_url,
+        }
+
+        await prisma.eventImage.create({
+          data: data,
+        })
+      }
+    })
+  }
+
+  const result = await prisma.event.findUniqueOrThrow({
+    where: {
+      id,
+    },
+    include: {
+      images: true,
+      location: true,
+      artist: true,
+      speaker: true,
+    },
+  })
   return result
 }
 
