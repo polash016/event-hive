@@ -236,7 +236,6 @@ const updateEvent = async (id: string, req: any): Promise<Event | null> => {
 
   const { event, location, artist, speaker } = data
 
-  console.log({ speaker })
   const { date, startTime, ...eventData } = event
 
   const existingEvent = await prisma.event.findUniqueOrThrow({
