@@ -1,9 +1,10 @@
 export const eventFilterField = [
   'searchTerm',
   'name',
-  'date',
+  'dateTime',
   'location',
   'status',
+  'type',
 ]
 
-export const eventSearchFields = ['name', 'date', 'status']
+export const eventSearchFields = ['name']

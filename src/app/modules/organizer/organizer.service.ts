@@ -41,6 +41,7 @@ const getAllOrganizer = async (
   })
 
   const whereConditions: Prisma.OrganizerWhereInput = { AND: andConditions }
+
   const result = await prisma.organizer.findMany({
     where: {
       ...whereConditions,

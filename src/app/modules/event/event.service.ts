@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Event, EventType, Prisma, UserRole } from '@prisma/client'
+import { Event, EventType, Prisma, UserRole, UserStatus } from '@prisma/client'
 import calculatePagination from '../../../helpers/paginationHelper'
 import { TPaginationOptions } from '../../interfaces/pagination'
 import { TEventFilterRequest } from './event.interface'
@@ -145,12 +145,44 @@ const getAllEvent = async (
 
   if (searchTerm) {
     andConditions.push({
-      OR: eventSearchFields.map(field => ({
-        [field]: {
-          contains: params.searchTerm,
-          mode: 'insensitive',
+      OR: [
+        ...eventSearchFields
+          .map(field => ({
+            [field]: {
+              contains: params.searchTerm,
+              mode: 'insensitive',
+            },
+          }))
+          .filter(Boolean),
+        {
+          artist: {
+            name: {
+              contains: params.searchTerm,
+              mode: 'insensitive',
+            },
+          },
         },
-      })),
+
+        // Search in related Speaker name
+        {
+          speaker: {
+            name: {
+              contains: params.searchTerm,
+              mode: 'insensitive',
+            },
+          },
+        },
+
+        // Search in related Location city
+        {
+          location: {
+            city: {
+              contains: params.searchTerm,
+              mode: 'insensitive',
+            },
+          },
+        },
+      ],
     })
   }
 
@@ -175,8 +207,14 @@ const getAllEvent = async (
   }
 
   const whereConditions: Prisma.EventWhereInput = { AND: andConditions }
+
   const result = await prisma.event.findMany({
-    where: whereConditions,
+    where: {
+      ...whereConditions,
+      organizer: {
+        status: UserStatus.ACTIVE,
+      },
+    },
     skip,
     take: limit,
     orderBy:
@@ -257,14 +295,15 @@ const updateEvent = async (id: string, req: any): Promise<Event | null> => {
       hours: hours,
       minutes: minutes,
     })
-    eventData.dateTime = dateTime
+    const utcDateTime = dateTime.toISOString()
+    eventData.dateTime = utcDateTime
   }
 
   if (eventData?.dateTime) {
     const existingEventSchedule = await prisma.event.findFirst({
       where: {
         id: { not: id },
-        dateTime: eventData?.dateTime || '',
+        dateTime: eventData?.dateTime,
       },
     })
 
