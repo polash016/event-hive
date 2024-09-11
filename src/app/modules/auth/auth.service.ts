@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Secret } from 'jsonwebtoken'
 import { jwtHelpers } from './../../../helpers/jwtHelpers'
 import bcrypt from 'bcrypt'
 import prisma from '../../../shared/prisma'
-import { UserStatus } from '@prisma/client'
+import { UserRole, UserStatus } from '@prisma/client'
 import config from '../../config'
 import AppError from '../../errors/AppError'
 import httpStatus from 'http-status'
@@ -17,13 +18,94 @@ const loginUser = async (payload: { email: string; password: string }) => {
     },
   })
 
-  const isPasswordCorrect = await bcrypt.compare(password, user.password)
+  const isPasswordCorrect = await bcrypt.compare(
+    password,
+    user?.password as string,
+  )
 
   if (!isPasswordCorrect) {
     throw new AppError(httpStatus.UNAUTHORIZED, 'Incorrect Password')
   }
 
   const jwtPayload = { email: user.email, role: user.role }
+
+  const token = jwtHelpers.generateToken(
+    jwtPayload,
+    config.jwt_secret as Secret,
+    config.jwt_secret_expires as string,
+  )
+
+  const refreshToken = jwtHelpers.generateToken(
+    jwtPayload,
+    config.jwt_refresh as Secret,
+    config.jwt_refresh_expires as string,
+  )
+
+  return {
+    accessToken: token,
+    refreshToken,
+  }
+}
+
+const findOrCreateUser = async (profile: any) => {
+  const email = profile.emails[0].value
+
+  //profile.displayName
+  //profile.picture
+  //profile.name.familyName + ' ' + profile.name.givenName
+
+  // if (!user) {
+  //   user = await prisma.user.create({
+  //     data: {
+  //       email,
+  //       name: profile.displayName,
+  //       googleId: profile.id,
+  //     },
+  //   })
+  // }
+
+  const user = await prisma.user.findUnique({ where: { email } })
+
+  if (user) {
+    const jwtPayload = { email: user.email, role: user.role }
+
+    const token = jwtHelpers.generateToken(
+      jwtPayload,
+      config.jwt_secret as Secret,
+      config.jwt_secret_expires as string,
+    )
+
+    const refreshToken = jwtHelpers.generateToken(
+      jwtPayload,
+      config.jwt_refresh as Secret,
+      config.jwt_refresh_expires as string,
+    )
+
+    return {
+      accessToken: token,
+      refreshToken,
+    }
+  }
+
+  const createdUser = await prisma.$transaction(async transClient => {
+    const user = await transClient.user.create({
+      data: {
+        email,
+        role: UserRole.ATTENDEE,
+      },
+    })
+
+    await transClient.attendee.create({
+      data: {
+        email,
+        name: `${profile.name.givenName} ${profile.name.familyName ? profile.name.familyName : ''}`,
+        profilePhoto: profile?.photos[0].value,
+      },
+    })
+    return user
+  })
+
+  const jwtPayload = { email: createdUser.email, role: createdUser.role }
 
   const token = jwtHelpers.generateToken(
     jwtPayload,
@@ -81,7 +163,7 @@ const changePassword = async (
   })
   const isPasswordMatched = await bcrypt.compare(
     payload.oldPassword,
-    user.password,
+    user.password as string,
   )
   if (!isPasswordMatched) {
     throw new AppError(httpStatus.UNAUTHORIZED, 'Wrong Password')
@@ -176,4 +258,5 @@ export const authServices = {
   changePassword,
   forgotPassword,
   resetPassword,
+  findOrCreateUser,
 }

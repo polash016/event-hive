@@ -24,4 +24,6 @@ export default {
   ssl_success_url: process.env.SSL_SUCCESS_URL,
   ssl_fail_url: process.env.SSL_FAIL_URL,
   ssl_cancel_url: process.env.SSL_CANCEL_URL,
+  google_client_id: process.env.GOOGLE_CLIENT_ID,
+  google_client_secret: process.env.GOOGLE_CLIENT_SECRET,
 }
