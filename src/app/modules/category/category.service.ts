@@ -1,143 +1,54 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { Organizer, Prisma, UserStatus } from '@prisma/client'
-import { TOrganizerFilterRequest } from './organizer.interface'
-import { TPaginationOptions } from '../../interfaces/pagination'
-import calculatePagination from '../../../helpers/paginationHelper'
-import { organizerSearchFields } from './organizer.constant'
+import { Category } from '@prisma/client'
 import prisma from '../../../shared/prisma'
+import AppError from '../../errors/AppError'
+import httpStatus from 'http-status'
 
-const getAllOrganizer = async (
-  params: TOrganizerFilterRequest,
-  options: TPaginationOptions,
-) => {
-  const { limit, page, skip } = calculatePagination(options)
-  const andConditions: Prisma.OrganizerWhereInput[] = []
+const getAllCategories = async () => {
+  const result = await prisma.category.findMany({})
 
-  const { searchTerm, ...filterData } = params
-
-  if (searchTerm) {
-    andConditions.push({
-      OR: organizerSearchFields.map(field => ({
-        [field]: {
-          contains: params.searchTerm,
-          mode: 'insensitive',
-        },
-      })),
-    })
-  }
-
-  if (Object.keys(filterData).length > 0) {
-    andConditions.push({
-      AND: Object.keys(filterData).map(key => ({
-        [key]: {
-          equals: (filterData as any)[key],
-        },
-      })),
-    })
-  }
-
-  andConditions.push({
-    isDeleted: false,
-  })
-
-  const whereConditions: Prisma.OrganizerWhereInput = { AND: andConditions }
-  const result = await prisma.organizer.findMany({
-    where: {
-      ...whereConditions,
-      user: {
-        status: UserStatus.ACTIVE,
-      },
-    },
-
-    skip,
-    take: limit,
-    orderBy:
-      options.sortBy && options.sortOrder
-        ? {
-            [options.sortBy]: options.sortOrder,
-          }
-        : {
-            createdAt: 'desc',
-          },
-    include: {
-      user: {
-        include: {
-          event: true,
-        },
-      },
-    },
-  })
-
-  const total = await prisma.organizer.count({ where: whereConditions })
+  const total = await prisma.category.count({})
 
   return {
     meta: {
-      page,
-      limit,
       total,
     },
     data: result,
   }
 }
 
-const getSingleOrganizer = async (id: string): Promise<Organizer | null> => {
-  const result = await prisma.organizer.findUniqueOrThrow({
+const createCategory = async (data: {
+  name: string
+}): Promise<Category | null> => {
+  const category = await prisma.category.findFirst({
     where: {
-      id: id,
-      isDeleted: false,
+      name: {
+        contains: data.name,
+        mode: 'insensitive',
+      },
     },
+  })
+  if (category) {
+    throw new AppError(httpStatus.CONFLICT, 'Category already exists')
+  }
+  const result = await prisma.category.create({
+    data,
   })
 
   return result
 }
 
-const updateOrganizer = async (
-  id: string,
-  payload: Partial<Organizer>,
-): Promise<Organizer | null> => {
-  const result = await prisma.organizer.update({
-    where: {
-      id: id,
-      isDeleted: false,
-    },
-    data: payload,
-  })
-
-  return result
-}
-
-const softDeleteOrganizer = async (id: string) => {
-  await prisma.organizer.findUniqueOrThrow({
+const deleteCategory = async (id: string) => {
+  const result = await prisma.category.delete({
     where: {
       id,
-      isDeleted: false,
     },
-  })
-
-  const result = await prisma.$transaction(async trans => {
-    const deleteOrganizer = await trans.organizer.update({
-      where: {
-        id: id,
-      },
-      data: { isDeleted: true },
-    })
-
-    await trans.user.update({
-      where: {
-        email: deleteOrganizer.email,
-      },
-      data: { status: UserStatus.DELETED },
-    })
-
-    return deleteOrganizer
   })
 
   return result
 }
 
-export const organizerServices = {
-  getAllOrganizer,
-  getSingleOrganizer,
-  updateOrganizer,
-  softDeleteOrganizer,
+export const categoryServices = {
+  getAllCategories,
+  createCategory,
+  deleteCategory,
 }

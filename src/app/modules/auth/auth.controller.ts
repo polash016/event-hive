@@ -5,6 +5,7 @@ import { authServices } from './auth.service'
 import sendResponse from '../../../shared/sendResponse'
 
 interface GLoginRes {
+  googleId: string
   accessToken: string
   refreshToken: string
 }
@@ -29,37 +30,62 @@ const loginUser = catchAsync(async (req, res) => {
 
 const googleCallback = catchAsync(async (req, res) => {
   if (req.user) {
-    const { refreshToken } = req.user as GLoginRes
+    const { accessToken, refreshToken } = req.user as GLoginRes
 
+    // Set a secure HTTP-only cookie with the token
     res.cookie('refreshToken', refreshToken, {
-      secure: false, // true only in production
+      secure: process.env.NODE_ENV === 'production', // Only secure in production
       httpOnly: true,
     })
-    sendResponse(res, {
-      statusCode: httpStatus.OK,
-      success: true,
-      message: 'User logged in successfully!',
-      data: req.user,
-    })
+
+    // Redirect to the frontend with additional user data in query params
+    res.redirect(
+      `http://localhost:3001/login/success?accessToken=${accessToken}`,
+    )
   } else {
-    res.status(403).json({ error: true, message: 'Not Authorized' })
+    // If authentication fails, redirect to the login page with an error message
+    res.redirect(`http://localhost:3001/login`)
   }
-  // const user = req?.user
-
-  // console.log('controller', user)
-
-  // // const result = await authServices.findOrCreateUser(user)
-
-  // // Handle the user object, e.g., create a session or return a JWT
-  // // res.redirect('/') // Redirect to your desired route after successful login
-
-  // sendResponse(res, {
-  //   statusCode: httpStatus.OK,
-  //   success: true,
-  //   message: 'User logged in successfully!',
-  //   data: user,
-  // })
 })
+
+// const googleCallback = catchAsync(async (req, res) => {
+//   if (req.user) {
+//     const { refreshToken } = req.user as GLoginRes
+
+//     res.cookie('refreshToken', refreshToken, {
+//       secure: false, // true only in production
+//       httpOnly: true,
+//     })
+//     sendResponse(res, {
+//       statusCode: httpStatus.OK,
+//       success: true,
+//       message: 'User logged in successfully!',
+//       data: req.user,
+//     })
+//   } else {
+//     sendResponse(res, {
+//       statusCode: httpStatus.INTERNAL_SERVER_ERROR,
+//       success: false,
+//       message: 'Not authorized',
+//       data: null,
+//     })
+//   }
+//   // const user = req?.user
+
+//   // console.log('controller', user)
+
+//   // // const result = await authServices.findOrCreateUser(user)
+
+//   // // Handle the user object, e.g., create a session or return a JWT
+//   // // res.redirect('/') // Redirect to your desired route after successful login
+
+//   // sendResponse(res, {
+//   //   statusCode: httpStatus.OK,
+//   //   success: true,
+//   //   message: 'User logged in successfully!',
+//   //   data: user,
+//   // })
+// })
 
 const refreshToken = catchAsync(async (req, res) => {
   // console.log(req);

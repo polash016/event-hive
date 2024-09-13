@@ -82,6 +82,7 @@ const findOrCreateUser = async (profile: any) => {
     )
 
     return {
+      googleId: user.googleId,
       accessToken: token,
       refreshToken,
     }
@@ -91,6 +92,7 @@ const findOrCreateUser = async (profile: any) => {
     const user = await transClient.user.create({
       data: {
         email,
+        googleId: profile.id,
         role: UserRole.ATTENDEE,
       },
     })
@@ -120,6 +122,7 @@ const findOrCreateUser = async (profile: any) => {
   )
 
   return {
+    googleId: createdUser.googleId,
     accessToken: token,
     refreshToken,
   }

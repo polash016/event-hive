@@ -1,12 +1,11 @@
 import { z } from 'zod'
 
-const updateOrganizer = z.object({
+const createCategory = z.object({
   body: z.object({
-    name: z.string().optional(),
-    contactNumber: z.string().optional(),
+    name: z.string(),
   }),
 })
 
-export const OrganizerValidation = {
-  updateOrganizer,
+export const CategoryValidation = {
+  createCategory,
 }

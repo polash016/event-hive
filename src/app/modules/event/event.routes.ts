@@ -35,8 +35,7 @@ router.post(
   auth(UserRole.ORGANIZER, UserRole.SUPER_ADMIN),
   fileUploader.upload.fields([
     { name: 'events', maxCount: 10 },
-    { name: 'speakerImg', maxCount: 1 },
-    { name: 'artistImg', maxCount: 1 },
+    { name: 'guestImg', maxCount: 1 },
   ]),
   (req: Request, res: Response, next: NextFunction) => {
     req.body = JSON.parse(req.body.data) //EventValidation.createEvent.parse(JSON.parse(req.body.data))

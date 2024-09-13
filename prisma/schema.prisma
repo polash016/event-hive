@@ -15,6 +15,7 @@ datasource db {
 
 model User {
   id        String     @id @default(uuid())
+  googleId String?    @unique
   email     String     @unique
   password  String?
   role      UserRole
@@ -85,74 +86,68 @@ model Organizer {
 model Event {
   id          String         @id @default(uuid())
   organizerId String
-  categoryId  String
   name        String
   description String?
   dateTime    DateTime
   ticketPrice Int
   totalTicket Int
-  ticketSold Int @default(0)
-  status EventStatus @default(UPCOMING)
-  type EventType
-  isDeleted Boolean @default(false)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  ticketSold  Int            @default(0)
+  status      EventStatus    @default(UPCOMING)
+  isDeleted   Boolean        @default(false)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
   location    EventLocation?
-  images EventImage[]
-  artist Artist?
-  speaker Speaker?
-  payment Payment[]
+  images      EventImage[]
+  guest       Guest?
+  payment     Payment[]
+  categories EventCategory[]
 
-  organizer   User       @relation(fields: [organizerId], references: [id])
-  category   Category       @relation(fields: [categoryId], references: [id])
+  organizer     User            @relation(fields: [organizerId], references: [id])
 
   @@map("events")
 }
 
-model Artist {
-  id          String   @id @default(uuid())
-  eventId     String @unique
-  name        String
-  bio         String?
-  imageUrl    String?
-  genre       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+model Guest {
+  id        String   @id @default(uuid())
+  eventId   String   @unique
+  name      String
+  bio       String?
+  imageUrl  String?
+  expertise String?     
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  event       Event    @relation(fields: [eventId], references: [id])
+  event Event @relation(fields: [eventId], references: [id])
 
-  @@map("artists")
+  @@map("guests")
 }
 
-model Speaker {
-  id          String   @id @default(uuid())
-  eventId     String @unique
-  name        String
-  bio         String?
-  imageUrl    String?
-  expertise   String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+// model Speaker {
+//   id        String   @id @default(uuid())
+//   eventId   String   @unique
+//   name      String
+//   bio       String?
+//   imageUrl  String?
+//   expertise String?
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
 
-  event       Event    @relation(fields: [eventId], references: [id])
+//   event Event @relation(fields: [eventId], references: [id])
 
-  @@map("speakers")
-}
-
+//   @@map("speakers")
+// }
 
 model EventLocation {
-  id     String        @id @default(uuid())
+  id      String @id @default(uuid())
   eventId String @unique
-  street String
-  city String
+  street  String
+  city    String
   country String
-  
-  event     Event    @relation(fields: [eventId], references: [id])
+
+  event Event @relation(fields: [eventId], references: [id])
 
   @@map("event_location")
-
 }
-
 
 model EventImage {
   id        String   @id @default(uuid())
@@ -161,53 +156,51 @@ model EventImage {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  event     Event    @relation(fields: [eventId], references: [id])
+  event Event @relation(fields: [eventId], references: [id])
 
   @@map("event_images")
 }
 
 model Payment {
-  id            String      @id @default(uuid())
-  userId        String 
-  eventId       String
-  transactionId String      @unique
-  amount        Int
-  currency      String      @default("BDT")
-  paymentStatus PaymentStatus @default(PENDING)
-  paymentMethod String?
+  id                 String        @id @default(uuid())
+  userId             String
+  eventId            String
+  transactionId      String        @unique
+  amount             Int
+  currency           String        @default("BDT")
+  paymentStatus      PaymentStatus @default(PENDING)
+  paymentMethod      String?
   paymentGatewayData Json?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
 
-  user   User   @relation(fields: [userId], references: [id])
-  event  Event  @relation(fields: [eventId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+  event Event @relation(fields: [eventId], references: [id])
 
   @@map("payments")
 }
 
-
-
 model Category {
-  id          String        @id @default(uuid())
-  name        String     @unique
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  events      Event[] 
+  id            String          @id @default(uuid())
+  name          String          @unique
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+ 
+  categories EventCategory[]
 
   @@map("categories")
 }
 
-// model EventCategory {
-//   eventId     String
-//   categoryId  String
+model EventCategory {
+  eventId    String
+  categoryId String
 
-//   event       Event     @relation(fields: [eventId], references: [id])
-//   category    Category  @relation(fields: [categoryId], references: [id])
+  event    Event    @relation(fields: [eventId], references: [id])
+  category Category @relation(fields: [categoryId], references: [id])
 
-//   @@id([eventId, categoryId])
-
-//   @@map("event_categories")
-// }
+  @@id([eventId, categoryId])
+  @@map("event_categories")
+}
 
 enum UserRole {
   SUPER_ADMIN
@@ -234,10 +227,7 @@ enum EventStatus {
   ENDED
 }
 
-enum EventType {
-  CONCERT
-  CONFERENCE
-}
+
 
 enum PaymentStatus {
   PENDING

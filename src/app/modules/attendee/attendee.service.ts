@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { Attendee, Prisma, UserStatus } from '@prisma/client'
+import { Attendee, Prisma } from '@prisma/client'
 import calculatePagination from '../../../helpers/paginationHelper'
 import { TPaginationOptions } from '../../interfaces/pagination'
 import { TAttendeeFilterRequest } from './attendee.interface'
@@ -103,18 +103,16 @@ const softDeleteAttendee = async (id: string) => {
   })
 
   const result = await prisma.$transaction(async trans => {
-    const adminDelete = await trans.attendee.update({
+    const adminDelete = await trans.attendee.delete({
       where: {
         id: id,
       },
-      data: { isDeleted: true },
     })
 
-    await trans.user.update({
+    await trans.user.delete({
       where: {
         email: adminDelete.email,
       },
-      data: { status: UserStatus.DELETED },
     })
 
     return adminDelete

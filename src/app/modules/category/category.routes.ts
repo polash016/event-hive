@@ -1,35 +1,29 @@
 import express from 'express'
 import { UserRole } from '@prisma/client'
-import { organizerController } from './organizer.controller'
-import auth from '../../middlewares/auth'
 import validateRequest from '../../middlewares/validateRequest'
-import { OrganizerValidation } from './organizer.validation'
+import { categoryController } from './category.controller'
+import { CategoryValidation } from './category.validation'
+import auth from '../../middlewares/auth'
 
 const router = express.Router()
 
 router.get(
   '/',
-  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
-  organizerController.getOrganizers,
+  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.ORGANIZER),
+  categoryController.getCategories,
 )
 
-router.get(
-  '/:id',
-  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
-  organizerController.getSingleOrganizer,
-)
-
-router.patch(
-  '/:id',
-  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
-  validateRequest(OrganizerValidation.updateOrganizer),
-  organizerController.updateSingleOrganizer,
+router.post(
+  '/create-category',
+  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.ORGANIZER),
+  validateRequest(CategoryValidation.createCategory),
+  categoryController.createCategory,
 )
 
 router.delete(
-  '/soft/:id',
-  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
-  organizerController.deleteSingleOrganizer,
+  '/:id',
+  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.ORGANIZER),
+  categoryController.deleteSingleCategory,
 )
 
-export const OrganizerRoutes = router
+export const CategoryRoutes = router

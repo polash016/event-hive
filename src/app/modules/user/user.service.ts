@@ -94,7 +94,6 @@ const createAttendee = async (req: any) => {
     data.password,
     Number(config.salt_rounds),
   )
-  console.log({ data })
 
   const userData = {
     email: data.attendee.email,

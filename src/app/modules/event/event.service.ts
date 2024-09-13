@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Event, EventType, Prisma, UserRole, UserStatus } from '@prisma/client'
+import { Event, Prisma, UserRole, UserStatus } from '@prisma/client'
 import calculatePagination from '../../../helpers/paginationHelper'
 import { TPaginationOptions } from '../../interfaces/pagination'
 import { TEventFilterRequest } from './event.interface'
@@ -16,11 +16,9 @@ const createEvent = async (req: any) => {
 
   const eventImages = files?.events
 
-  const speakerImage = files?.speakerImg
+  const guestImg = files?.guestImg
 
-  const artistImage = files?.artistImg
-
-  const { event, location, artist, speaker } = data
+  const { event, location, guest, categories } = data
 
   const { date, startTime, ...eventData } = event
 
@@ -48,19 +46,11 @@ const createEvent = async (req: any) => {
     )
   }
 
-  if (artistImage) {
+  if (guestImg) {
     const uploadToCloudinary = await fileUploader.uploadToCloudinary(
-      artistImage[0],
+      guestImg[0],
     )
-    artist.imageUrl = uploadToCloudinary?.secure_url
-  }
-
-  if (speakerImage) {
-    const uploadToCloudinary = await fileUploader.uploadToCloudinary(
-      speakerImage[0],
-    )
-
-    speaker.imageUrl = uploadToCloudinary?.secure_url
+    guest.imageUrl = uploadToCloudinary?.secure_url
   }
 
   const user = await prisma.user.findUniqueOrThrow({
@@ -80,17 +70,18 @@ const createEvent = async (req: any) => {
       data: { ...location, eventId: createEvent.id },
     })
 
-    if (artist) {
-      await trans.artist.create({
-        data: { ...artist, eventId: createEvent.id },
-      })
-    }
+    await trans.guest.create({
+      data: { ...guest, eventId: createEvent.id },
+    })
 
-    if (speaker) {
-      await trans.speaker.create({
-        data: { ...speaker, eventId: createEvent.id },
-      })
-    }
+    const eventCategoriesData = categories.map((categoriesId: string) => ({
+      eventId: createEvent.id,
+      categoryId: categoriesId,
+    }))
+
+    await trans.eventCategory.createMany({
+      data: eventCategoriesData,
+    })
 
     return createEvent
   })
@@ -98,6 +89,8 @@ const createEvent = async (req: any) => {
   if (eventImages) {
     const uploadToCloudinary =
       await fileUploader.uploadFilesToCloudinary(eventImages)
+
+    console.log({ uploadToCloudinary })
 
     uploadToCloudinary.forEach(async file => {
       if (file?.secure_url) {
@@ -107,7 +100,7 @@ const createEvent = async (req: any) => {
         }
 
         await prisma.eventImage.create({
-          data: data,
+          data,
         })
       }
     })
@@ -120,8 +113,8 @@ const createEvent = async (req: any) => {
     include: {
       images: true,
       location: true,
-      artist: true,
-      speaker: true,
+      guest: true,
+      categories: true,
     },
   })
 
@@ -155,7 +148,7 @@ const getAllEvent = async (
           }))
           .filter(Boolean),
         {
-          artist: {
+          guest: {
             name: {
               contains: params.searchTerm,
               mode: 'insensitive',
@@ -163,17 +156,6 @@ const getAllEvent = async (
           },
         },
 
-        // Search in related Speaker name
-        {
-          speaker: {
-            name: {
-              contains: params.searchTerm,
-              mode: 'insensitive',
-            },
-          },
-        },
-
-        // Search in related Location city
         {
           location: {
             city: {
@@ -228,8 +210,12 @@ const getAllEvent = async (
     include: {
       images: true,
       location: true,
-      speaker: true,
-      artist: true,
+      guest: true,
+      categories: {
+        include: {
+          category: true,
+        },
+      },
     },
   })
 
@@ -254,8 +240,12 @@ const getSingleEvent = async (id: string): Promise<Event | null> => {
     include: {
       images: true,
       location: true,
-      speaker: true,
-      artist: true,
+      guest: true,
+      categories: {
+        include: {
+          category: true,
+        },
+      },
     },
   })
 
@@ -268,11 +258,9 @@ const updateEvent = async (id: string, req: any): Promise<Event | null> => {
 
   const eventImages = files?.events
 
-  const speakerImage = files?.speakerImg
+  const guestImage = files?.guestImg
 
-  const artistImage = files?.artistImg
-
-  const { event, location, artist, speaker } = data
+  const { event, location, guest, categories } = data
 
   const { date, startTime, ...eventData } = event
 
@@ -282,10 +270,23 @@ const updateEvent = async (id: string, req: any): Promise<Event | null> => {
     },
     include: {
       location: true,
-      artist: true,
-      speaker: true,
+      guest: true,
+      categories: true,
     },
   })
+
+  let newCategories: string[]
+
+  if (categories) {
+    const existingCategoryIds = existingEvent.categories.map(
+      category => category.categoryId,
+    )
+
+    // Filter out categories already existing in the relationship
+    newCategories = categories.filter(
+      (categoryId: string) => !existingCategoryIds.includes(categoryId),
+    )
+  }
 
   if (date && startTime) {
     const [hours, minutes] = startTime.split(':').map(Number)
@@ -315,19 +316,12 @@ const updateEvent = async (id: string, req: any): Promise<Event | null> => {
     }
   }
 
-  if (artistImage) {
+  if (guestImage) {
     const uploadToCloudinary = await fileUploader.uploadToCloudinary(
-      artistImage[0],
-    )
-    artist.imageUrl = uploadToCloudinary?.secure_url
-  }
-
-  if (speakerImage) {
-    const uploadToCloudinary = await fileUploader.uploadToCloudinary(
-      speakerImage[0],
+      guestImage[0],
     )
 
-    speaker.imageUrl = uploadToCloudinary?.secure_url
+    guest.imageUrl = uploadToCloudinary?.secure_url
   }
 
   await prisma.$transaction(async trans => {
@@ -349,21 +343,21 @@ const updateEvent = async (id: string, req: any): Promise<Event | null> => {
         data: { ...location },
       })
 
-    if (artist && (artist.name || artist.bio || artist.genre)) {
-      await trans.artist.update({
+    if (guest && (guest.name || guest.bio || guest.expertise)) {
+      await trans.guest.update({
         where: {
-          id: existingEvent.artist?.id,
+          id: existingEvent.guest?.id,
         },
-        data: { ...artist },
+        data: { ...guest },
       })
     }
 
-    if (speaker && (speaker.name || speaker.bio || speaker.expertise)) {
-      await trans.speaker.update({
-        where: {
-          id: existingEvent.speaker?.id,
-        },
-        data: { ...speaker },
+    if (newCategories && newCategories.length > 0) {
+      await trans.eventCategory.createMany({
+        data: newCategories.map((categoryId: string) => ({
+          eventId: id,
+          categoryId,
+        })),
       })
     }
 
@@ -395,21 +389,26 @@ const updateEvent = async (id: string, req: any): Promise<Event | null> => {
     include: {
       images: true,
       location: true,
-      artist: true,
-      speaker: true,
+      guest: true,
     },
   })
   return result
 }
 
 const deleteEvent = async (id: string) => {
-  const event = await prisma.event.findUniqueOrThrow({
+  await prisma.event.findUniqueOrThrow({
     where: {
       id,
     },
   })
 
   const result = await prisma.$transaction(async trans => {
+    await trans.eventCategory.deleteMany({
+      where: {
+        eventId: id,
+      },
+    })
+
     await trans.eventImage.deleteMany({
       where: {
         eventId: id,
@@ -422,21 +421,11 @@ const deleteEvent = async (id: string) => {
       },
     })
 
-    if (event.type === EventType.CONCERT) {
-      await trans.artist.deleteMany({
-        where: {
-          eventId: id,
-        },
-      })
-    }
-
-    if (event.type === EventType.CONFERENCE) {
-      await trans.speaker.deleteMany({
-        where: {
-          eventId: id,
-        },
-      })
-    }
+    await trans.guest.deleteMany({
+      where: {
+        eventId: id,
+      },
+    })
 
     const deletedEvent = await trans.event.delete({
       where: {
