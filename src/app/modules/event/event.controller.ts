@@ -4,6 +4,7 @@ import pick from '../../../shared/pick'
 import sendResponse from '../../../shared/sendResponse'
 import { eventFilterField } from './event.constant'
 import { eventServices } from './event.service'
+import { IReqUser } from '../../interfaces/common'
 
 const createEvent = catchAsync(async (req, res) => {
   const result = await eventServices.createEvent(req)
@@ -23,7 +24,7 @@ const getAllEvent = catchAsync(async (req, res) => {
   const result = await eventServices.getAllEvent(
     filters,
     options,
-    req?.user?.email,
+    (req?.user as IReqUser)?.email,
   )
 
   sendResponse(res, {

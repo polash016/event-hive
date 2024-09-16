@@ -5,6 +5,7 @@ import catchAsync from '../../../shared/catchAsync'
 import sendResponse from '../../../shared/sendResponse'
 import { userSearchableField } from './user.const'
 import pick from '../../../shared/pick'
+import { IReqUser } from '../../interfaces/common'
 
 const createAdmin = catchAsync(async (req: Request, res: Response) => {
   const result = await userService.createAdmin(req)
@@ -69,7 +70,7 @@ const changeProfileStatus = catchAsync(async (req, res) => {
 })
 
 const getMyProfile = catchAsync(async (req, res) => {
-  const result = await userService.getProfile(req.user)
+  const result = await userService.getProfile(req.user as IReqUser)
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -80,7 +81,7 @@ const getMyProfile = catchAsync(async (req, res) => {
 })
 
 const updateMyProfile = catchAsync(async (req, res) => {
-  const result = await userService.updateProfile(req.user, req)
+  const result = await userService.updateProfile(req?.user as IReqUser, req)
 
   sendResponse(res, {
     statusCode: httpStatus.OK,

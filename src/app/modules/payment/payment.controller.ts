@@ -2,10 +2,11 @@ import httpStatus from 'http-status'
 import catchAsync from '../../../shared/catchAsync'
 import sendResponse from '../../../shared/sendResponse'
 import { paymentService } from './payment.service'
+import { IReqUser } from '../../interfaces/common'
 
 const initPayment = catchAsync(async (req, res) => {
   const { eventId } = req.params
-  const email = req.user.email
+  const email = (req?.user as IReqUser)?.email
   const result = await paymentService.initPayment(eventId, email)
 
   sendResponse(res, {
