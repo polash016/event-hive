@@ -9,8 +9,6 @@ const getAttendee = catchAsync(async (req, res) => {
   const filters = pick(req.query, attendeeFilterField)
   const options = pick(req.query, ['limit', 'page', 'sortBy', 'sortOrder'])
 
-  console.log(req.user)
-
   const result = await attendeeServices.getAllAttendee(filters, options)
 
   sendResponse(res, {
