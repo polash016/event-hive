@@ -90,8 +90,6 @@ const createEvent = async (req: any) => {
     const uploadToCloudinary =
       await fileUploader.uploadFilesToCloudinary(eventImages)
 
-    console.log({ uploadToCloudinary })
-
     uploadToCloudinary.forEach(async file => {
       if (file?.secure_url) {
         const data = {

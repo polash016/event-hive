@@ -94,6 +94,8 @@ const validatePayment = async (query: Record<string, any>) => {
     }
   }
 
+  // const res = query
+
   const payment = await prisma.payment.findUniqueOrThrow({
     where: {
       transactionId: query.tran_id,
@@ -107,7 +109,7 @@ const validatePayment = async (query: Record<string, any>) => {
       },
       data: {
         paymentStatus: 'COMPLETED',
-        paymentMethod: res.data.card_type,
+        paymentMethod: res?.data?.card_type || 'BDT',
         paymentGatewayData: res.data,
       },
     })

@@ -37,6 +37,15 @@ const getAllAttendee = async (
     })
   }
 
+  // andConditions.push({
+  //   user: {
+  //     payment: {
+
+  //     }
+  //   }
+
+  // })
+
   andConditions.push({
     isDeleted: false,
   })
@@ -54,6 +63,17 @@ const getAllAttendee = async (
         : {
             createdAt: 'desc',
           },
+    include: {
+      user: {
+        include: {
+          payment: {
+            include: {
+              event: true,
+            },
+          },
+        },
+      },
+    },
   })
 
   const total = await prisma.attendee.count({ where: whereConditions })

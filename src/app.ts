@@ -3,6 +3,7 @@ import cors from 'cors'
 import httpStatus from 'http-status'
 import cookieParser from 'cookie-parser'
 import session from 'express-session'
+import serverLess from 'serverless-http'
 import passport from 'passport'
 import router from './app/routes'
 import globalErrorHandler from './app/middlewares/globalErrorHandler'
@@ -45,3 +46,5 @@ app.use((req: Request, res: Response) => {
 })
 
 export default app
+
+export const handler = serverLess(app)
