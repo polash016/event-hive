@@ -10,7 +10,8 @@ passport.use(
     {
       clientID: config.google_client_id!, //process.env.GOOGLE_CLIENT_ID!,
       clientSecret: config.google_client_secret!, // process.env.GOOGLE_CLIENT_SECRET!,
-      callbackURL: 'http://localhost:3000/api/v1/auth/google/callback',
+      callbackURL:
+        'https://event-hive-srm9.onrender.com/api/v1/auth/google/callback',
       scope: ['profile', 'email'],
     },
     async (accessToken, refreshToken, profile, callback) => {
