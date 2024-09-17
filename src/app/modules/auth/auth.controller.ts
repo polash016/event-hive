@@ -40,11 +40,11 @@ const googleCallback = catchAsync(async (req, res) => {
 
     // Redirect to the frontend with additional user data in query params
     res.redirect(
-      `http://localhost:3001/login/success?accessToken=${accessToken}`,
+      `http://localhost:3000/login/success?accessToken=${accessToken}`,
     )
   } else {
     // If authentication fails, redirect to the login page with an error message
-    res.redirect(`http://localhost:3001/login`)
+    res.redirect(`http://localhost:3000/login`)
   }
 })
 
