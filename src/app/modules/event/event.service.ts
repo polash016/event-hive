@@ -53,8 +53,6 @@ const createEvent = async (req: any) => {
     guest.imageUrl = uploadToCloudinary?.secure_url
   }
 
-  console.log(guest)
-
   const user = await prisma.user.findUniqueOrThrow({
     where: {
       email: req.user.email,
@@ -76,13 +74,27 @@ const createEvent = async (req: any) => {
       data: { ...guest, eventId: createEvent.id },
     })
 
-    const eventCategoriesData = categories.map((categoriesId: string) => ({
-      eventId: createEvent.id,
-      categoryId: categoriesId,
-    }))
+    const existingCategories = await trans.category.findMany({
+      where: { id: { in: categories } },
+      select: { id: true },
+    })
+
+    const validCategoryIds = new Set(existingCategories.map(cat => cat.id))
+
+    const validEventCategories = categories
+      .filter((catId: string) => validCategoryIds.has(catId))
+      .map((catId: string) => ({
+        eventId: createEvent.id,
+        categoryId: catId,
+      }))
+
+    // const eventCategoriesData = categories.map((categoriesId: string) => ({
+    //   eventId: createEvent.id,
+    //   categoryId: categoriesId,
+    // }))
 
     await trans.eventCategory.createMany({
-      data: eventCategoriesData,
+      data: validEventCategories,
     })
 
     return createEvent
@@ -317,18 +329,13 @@ const updateEvent = async (id: string, req: any): Promise<Event | null> => {
       )
     }
   }
-  console.log({ guestImage })
   if (guestImage) {
     const uploadToCloudinary = await fileUploader.uploadToCloudinary(
       guestImage[0],
     )
 
-    console.log({ uploadToCloudinary })
-
     guest.imageUrl = uploadToCloudinary?.secure_url
   }
-
-  console.log({ guest })
 
   await prisma.$transaction(async trans => {
     let updatedEvent
