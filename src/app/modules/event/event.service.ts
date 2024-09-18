@@ -53,6 +53,8 @@ const createEvent = async (req: any) => {
     guest.imageUrl = uploadToCloudinary?.secure_url
   }
 
+  console.log(guest)
+
   const user = await prisma.user.findUniqueOrThrow({
     where: {
       email: req.user.email,
@@ -322,6 +324,8 @@ const updateEvent = async (id: string, req: any): Promise<Event | null> => {
 
     guest.imageUrl = uploadToCloudinary?.secure_url
   }
+
+  console.log(guest)
 
   await prisma.$transaction(async trans => {
     let updatedEvent
