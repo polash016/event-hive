@@ -129,10 +129,18 @@ const getAllEvent = async (
 
   const { searchTerm, ...filterData } = params
 
-  const user = await prisma.user.findUniqueOrThrow({
-    where: { email },
-    select: { id: true, role: true },
-  })
+  if (email) {
+    const user = await prisma.user.findUniqueOrThrow({
+      where: { email },
+      select: { id: true, role: true },
+    })
+
+    if (user.role === UserRole.ORGANIZER) {
+      andConditions.push({
+        organizerId: user?.id,
+      })
+    }
+  }
 
   if (searchTerm) {
     andConditions.push({
@@ -179,12 +187,6 @@ const getAllEvent = async (
   andConditions.push({
     isDeleted: false,
   })
-
-  if (user.role === UserRole.ORGANIZER) {
-    andConditions.push({
-      organizerId: user?.id,
-    })
-  }
 
   const whereConditions: Prisma.EventWhereInput = { AND: andConditions }
 
@@ -313,7 +315,6 @@ const updateEvent = async (id: string, req: any): Promise<Event | null> => {
       )
     }
   }
-
   if (guestImage) {
     const uploadToCloudinary = await fileUploader.uploadToCloudinary(
       guestImage[0],
