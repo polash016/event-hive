@@ -317,15 +317,18 @@ const updateEvent = async (id: string, req: any): Promise<Event | null> => {
       )
     }
   }
+  console.log({ guestImage })
   if (guestImage) {
     const uploadToCloudinary = await fileUploader.uploadToCloudinary(
       guestImage[0],
     )
 
+    console.log({ uploadToCloudinary })
+
     guest.imageUrl = uploadToCloudinary?.secure_url
   }
 
-  console.log(guest)
+  console.log({ guest })
 
   await prisma.$transaction(async trans => {
     let updatedEvent
