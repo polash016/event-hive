@@ -21,7 +21,7 @@ router.get(
 
 router.get(
   '/:id',
-  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.ORGANIZER),
+  // auth(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.ORGANIZER),
   eventController.getSingleEvent,
 )
 router.delete(

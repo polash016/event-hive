@@ -38,6 +38,19 @@ const createCategory = async (data: {
 }
 
 const deleteCategory = async (id: string) => {
+  await prisma.category.findUniqueOrThrow({
+    where: {
+      id,
+    },
+  })
+
+  await prisma.eventCategory.deleteMany({
+    where: {
+      categoryId: id,
+    },
+  })
+
+  // Now delete the category
   const result = await prisma.category.delete({
     where: {
       id,
