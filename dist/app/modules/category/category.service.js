@@ -44,6 +44,17 @@ const createCategory = (data) => __awaiter(void 0, void 0, void 0, function* () 
     return result;
 });
 const deleteCategory = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    yield prisma_1.default.category.findUniqueOrThrow({
+        where: {
+            id,
+        },
+    });
+    yield prisma_1.default.eventCategory.deleteMany({
+        where: {
+            categoryId: id,
+        },
+    });
+    // Now delete the category
     const result = yield prisma_1.default.category.delete({
         where: {
             id,

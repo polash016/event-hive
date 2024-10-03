@@ -26,4 +26,5 @@ export default {
   ssl_cancel_url: process.env.SSL_CANCEL_URL,
   google_client_id: process.env.GOOGLE_CLIENT_ID,
   google_client_secret: process.env.GOOGLE_CLIENT_SECRET,
+  stripe_secret_key: process.env.STRIPE_SECRET_KEY,
 }

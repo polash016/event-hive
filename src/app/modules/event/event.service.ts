@@ -88,6 +88,10 @@ const createEvent = async (req: any) => {
         categoryId: catId,
       }))
 
+    if (validEventCategories.length === 0) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'Invalid Category')
+    }
+
     // const eventCategoriesData = categories.map((categoriesId: string) => ({
     //   eventId: createEvent.id,
     //   categoryId: categoriesId,

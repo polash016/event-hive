@@ -12,4 +12,16 @@ router.post(
 
 router.post('/ipn', auth(UserRole.ATTENDEE), paymentController.validatePayment)
 
+router.post(
+  '/create-checkout-session/:eventId',
+  auth(UserRole.ATTENDEE),
+  paymentController.checkoutPaymentSession,
+)
+
+router.post(
+  '/webhook',
+  express.raw({ type: 'application/json' }),
+  paymentController.handleWebhook,
+)
+
 export const PaymentRoutes = router

@@ -168,7 +168,7 @@ model Payment {
   transactionId      String        @unique
   amount             Int
   currency           String        @default("BDT")
-  paymentStatus      PaymentStatus @default(PENDING)
+  paymentStatus      String       @default("Pending")
   paymentMethod      String?
   paymentGatewayData Json?
   createdAt          DateTime      @default(now())
@@ -229,9 +229,9 @@ enum EventStatus {
 
 
 
-enum PaymentStatus {
-  PENDING
-  COMPLETED
-  FAILED
-  CANCELLED
-}
+// enum PaymentStatus {
+//   PENDING
+//   COMPLETED
+//   FAILED
+//   CANCELLED
+// }

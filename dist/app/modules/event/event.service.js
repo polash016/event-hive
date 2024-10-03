@@ -75,12 +75,23 @@ const createEvent = (req) => __awaiter(void 0, void 0, void 0, function* () {
         yield trans.guest.create({
             data: Object.assign(Object.assign({}, guest), { eventId: createEvent.id }),
         });
-        const eventCategoriesData = categories.map((categoriesId) => ({
+        const existingCategories = yield trans.category.findMany({
+            where: { id: { in: categories } },
+            select: { id: true },
+        });
+        const validCategoryIds = new Set(existingCategories.map(cat => cat.id));
+        const validEventCategories = categories
+            .filter((catId) => validCategoryIds.has(catId))
+            .map((catId) => ({
             eventId: createEvent.id,
-            categoryId: categoriesId,
+            categoryId: catId,
         }));
+        // const eventCategoriesData = categories.map((categoriesId: string) => ({
+        //   eventId: createEvent.id,
+        //   categoryId: categoriesId,
+        // }))
         yield trans.eventCategory.createMany({
-            data: eventCategoriesData,
+            data: validEventCategories,
         });
         return createEvent;
     }));
@@ -115,10 +126,17 @@ const getAllEvent = (params, options, email) => __awaiter(void 0, void 0, void 0
     const { limit, page, skip } = (0, paginationHelper_1.default)(options);
     const andConditions = [];
     const { searchTerm } = params, filterData = __rest(params, ["searchTerm"]);
-    const user = yield prisma_1.default.user.findUniqueOrThrow({
-        where: { email },
-        select: { id: true, role: true },
-    });
+    if (email) {
+        const user = yield prisma_1.default.user.findUniqueOrThrow({
+            where: { email },
+            select: { id: true, role: true },
+        });
+        if (user.role === client_1.UserRole.ORGANIZER) {
+            andConditions.push({
+                organizerId: user === null || user === void 0 ? void 0 : user.id,
+            });
+        }
+    }
     if (searchTerm) {
         andConditions.push({
             OR: [
@@ -161,11 +179,6 @@ const getAllEvent = (params, options, email) => __awaiter(void 0, void 0, void 0
     andConditions.push({
         isDeleted: false,
     });
-    if (user.role === client_1.UserRole.ORGANIZER) {
-        andConditions.push({
-            organizerId: user === null || user === void 0 ? void 0 : user.id,
-        });
-    }
     const whereConditions = { AND: andConditions };
     const result = yield prisma_1.default.event.findMany({
         where: Object.assign(Object.assign({}, whereConditions), { organizer: {
