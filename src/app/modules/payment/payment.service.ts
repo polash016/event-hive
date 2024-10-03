@@ -149,7 +149,7 @@ const checkoutPaymentSession = async (id: string, email: string) => {
     metadata: { products: JSON.stringify(event) },
   })
 
-  console.log('checkout', paymentIntent)
+  console.log('checkout 152 line', paymentIntent)
 
   // const transactionId = uuidv4()
 
