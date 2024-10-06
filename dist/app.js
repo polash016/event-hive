@@ -8,7 +8,6 @@ const cors_1 = __importDefault(require("cors"));
 const http_status_1 = __importDefault(require("http-status"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const express_session_1 = __importDefault(require("express-session"));
-// import serverLess from 'serverless-http'
 const passport_1 = __importDefault(require("passport"));
 const routes_1 = __importDefault(require("./app/routes"));
 const globalErrorHandler_1 = __importDefault(require("./app/middlewares/globalErrorHandler"));
@@ -40,4 +39,3 @@ app.use((req, res) => {
     });
 });
 exports.default = app;
-// export const handler = serverLess(app)
