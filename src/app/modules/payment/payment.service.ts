@@ -143,6 +143,12 @@ const checkoutPaymentSession = async (id: string, email: string) => {
     },
   })
 
+  await prisma.user.findUniqueOrThrow({
+    where: {
+      email,
+    },
+  })
+
   const paymentIntent = await stripe.paymentIntents.create({
     amount: event.ticketPrice * 100,
     currency: 'BDT',

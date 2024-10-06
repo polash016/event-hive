@@ -45,11 +45,11 @@ const checkoutPaymentSession = catchAsync(async (req, res) => {
   })
 })
 
-const handleWebhook = async (req, res) => {
+const handleWebhook = catchAsync(async (req, res) => {
   try {
     const event = await paymentService.constructEvent(
       req.body,
-      req.headers['stripe-signature'],
+      req.headers['stripe-signature'] as string,
     )
     await paymentService.handleWebhookEvent(event)
     res.sendStatus(200)
@@ -57,7 +57,7 @@ const handleWebhook = async (req, res) => {
     console.error('Webhook error:', error.message)
     res.status(400).send(`Webhook Error: ${error.message}`)
   }
-}
+})
 
 export const paymentController = {
   initPayment,

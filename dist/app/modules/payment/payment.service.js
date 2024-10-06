@@ -138,78 +138,125 @@ const validatePayment = (query) => __awaiter(void 0, void 0, void 0, function* (
     };
 });
 const checkoutPaymentSession = (id, email) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c;
     const event = yield prisma_1.default.event.findFirstOrThrow({
         where: {
             id,
         },
     });
-    const user = yield prisma_1.default.user.findFirstOrThrow({
+    yield prisma_1.default.user.findUniqueOrThrow({
         where: {
             email,
         },
-        include: {
-            attendee: true,
-        },
     });
     const paymentIntent = yield stripe_1.stripe.paymentIntents.create({
-        amount: event.ticketPrice,
+        amount: event.ticketPrice * 100,
         currency: 'BDT',
         metadata: { products: JSON.stringify(event) },
     });
-    const transactionId = (0, uuid_1.v4)();
-    const data = {
-        store_id: config_1.default.ssl_store_id,
-        store_passwd: config_1.default.ssl_api_key,
-        total_amount: event.ticketPrice,
-        currency: 'BDT',
-        tran_id: transactionId,
-        success_url: config_1.default.ssl_success_url,
-        fail_url: config_1.default.ssl_fail_url,
-        cancel_url: config_1.default.ssl_cancel_url,
-        ipn_url: 'http://localhost:3030/ipn',
-        shipping_method: 'N/A',
-        product_name: 'Event.',
-        product_category: 'Entertainment',
-        product_profile: 'general',
-        cus_name: (_a = user.attendee) === null || _a === void 0 ? void 0 : _a.name,
-        cus_email: user.email,
-        cus_add1: (_b = user.attendee) === null || _b === void 0 ? void 0 : _b.address,
-        cus_add2: 'Dhaka',
-        cus_city: 'Dhaka',
-        cus_state: 'Dhaka',
-        cus_postcode: '1000',
-        cus_country: 'Bangladesh',
-        cus_phone: (_c = user.attendee) === null || _c === void 0 ? void 0 : _c.contactNumber,
-        cus_fax: '01711111111',
-        ship_name: 'Customer Name',
-        ship_add1: 'Dhaka',
-        ship_add2: 'Dhaka',
-        ship_city: 'Dhaka',
-        ship_state: 'Dhaka',
-        ship_postcode: 1000,
-        ship_country: 'Bangladesh',
-    };
-    yield prisma_1.default.payment.create({
-        data: {
-            userId: user.id,
-            eventId: event.id,
-            transactionId: paymentIntent.client_secret,
-            amount: paymentIntent.amount,
-            currency: paymentIntent.currency,
-            paymentStatus: paymentIntent.status,
-        },
-    });
-    const res = yield (0, axios_1.default)({
-        method: 'POST',
-        url: config_1.default.ssl_payment_api,
-        data: data,
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    });
-    return { paymentUrl: res.data.GatewayPageURL };
+    console.log('checkout 152 line', paymentIntent);
+    // const transactionId = uuidv4()
+    // const data = {
+    //   store_id: config.ssl_store_id,
+    //   store_passwd: config.ssl_api_key,
+    //   total_amount: event.ticketPrice,
+    //   currency: 'BDT',
+    //   tran_id: transactionId,
+    //   success_url: config.ssl_success_url,
+    //   fail_url: config.ssl_fail_url,
+    //   cancel_url: config.ssl_cancel_url,
+    //   ipn_url: 'http://localhost:3030/ipn',
+    //   shipping_method: 'N/A',
+    //   product_name: 'Event.',
+    //   product_category: 'Entertainment',
+    //   product_profile: 'general',
+    //   cus_name: user.attendee?.name,
+    //   cus_email: user.email,
+    //   cus_add1: user.attendee?.address,
+    //   cus_add2: 'Dhaka',
+    //   cus_city: 'Dhaka',
+    //   cus_state: 'Dhaka',
+    //   cus_postcode: '1000',
+    //   cus_country: 'Bangladesh',
+    //   cus_phone: user.attendee?.contactNumber,
+    //   cus_fax: '01711111111',
+    //   ship_name: 'Customer Name',
+    //   ship_add1: 'Dhaka',
+    //   ship_add2: 'Dhaka',
+    //   ship_city: 'Dhaka',
+    //   ship_state: 'Dhaka',
+    //   ship_postcode: 1000,
+    //   ship_country: 'Bangladesh',
+    // }
+    // const payment = await prisma.payment.create({
+    //   data: {
+    //     userId: user.id,
+    //     eventId: event.id,
+    //     transactionId: paymentIntent.client_secret!,
+    //     amount: paymentIntent.amount,
+    //     currency: paymentIntent.currency,
+    //     paymentStatus: paymentIntent.status,
+    //   },
+    // })
+    // console.log({ payment })
+    // const res = await axios({
+    //   method: 'POST',
+    //   url: config.ssl_payment_api,
+    //   data: data,
+    //   headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    // })
+    return paymentIntent;
+});
+const constructEvent = (payload, signature) => __awaiter(void 0, void 0, void 0, function* () {
+    return stripe_1.stripe.webhooks.constructEvent(payload, signature, process.env.STRIPE_WEBHOOK_SECRET);
+});
+const handleWebhookEvent = (event) => __awaiter(void 0, void 0, void 0, function* () {
+    switch (event.type) {
+        case 'payment_intent.succeeded': {
+            const paymentIntent = event.data.object;
+            yield handleSuccessfulPayment(paymentIntent);
+            break;
+        }
+        // Add more cases as needed
+    }
+});
+const handleSuccessfulPayment = (paymentIntent) => __awaiter(void 0, void 0, void 0, function* () {
+    // await prisma.$transaction(async trans => {
+    //   await trans.payment.update({
+    //     where: {
+    //       transactionId: query.tran_id,
+    //     },
+    //     data: {
+    //       paymentStatus: 'COMPLETED',
+    //       paymentMethod: res?.data?.card_type || 'BDT',
+    //       paymentGatewayData: res.data,
+    //     },
+    //   })
+    //   await trans.event.update({
+    //     where: {
+    //       id: payment.eventId,
+    //     },
+    //     data: {
+    //       ticketSold: {
+    //         increment: 1,
+    //       },
+    //       totalTicket: {
+    //         decrement: 1,
+    //       },
+    //     },
+    //   })
+    // })
+    // Update your database, e.g., mark an order as paid
+    // await prisma.payment.update({
+    //   where: { id: paymentIntent.metadata.orderId },
+    //   data: { paymentStatus: 'PAID' },
+    // })
+    console.log({ paymentIntent });
 });
 exports.paymentService = {
     initPayment,
     validatePayment,
     checkoutPaymentSession,
+    constructEvent,
+    handleWebhookEvent,
+    handleSuccessfulPayment,
 };

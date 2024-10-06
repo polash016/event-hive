@@ -86,6 +86,9 @@ const createEvent = (req) => __awaiter(void 0, void 0, void 0, function* () {
             eventId: createEvent.id,
             categoryId: catId,
         }));
+        if (validEventCategories.length === 0) {
+            throw new AppError_1.default(http_status_1.default.BAD_REQUEST, 'Invalid Category');
+        }
         // const eventCategoriesData = categories.map((categoriesId: string) => ({
         //   eventId: createEvent.id,
         //   categoryId: categoriesId,
