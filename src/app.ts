@@ -1,4 +1,7 @@
-import express, { Application, Request, Response } from 'express'
+/* eslint-disable no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import express, { Application, NextFunction, Request, Response } from 'express'
 import cors from 'cors'
 import httpStatus from 'http-status'
 import cookieParser from 'cookie-parser'
@@ -35,6 +38,11 @@ app.get('/', (req: Request, res: Response) => {
 app.use('/api/v1', router)
 
 app.use(globalErrorHandler)
+
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  console.error(err.stack)
+  res.status(500).send('Something broke!')
+})
 
 app.use((req: Request, res: Response) => {
   res.status(httpStatus.NOT_FOUND).json({

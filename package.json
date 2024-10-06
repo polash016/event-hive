@@ -4,10 +4,12 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "build": "tsc && prisma generate",
+    "build": "prisma generate && tsc",
     "prod": "node ./dist/server.js",
+    "start": "node dist/server.js",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "lint": "eslint src --ignore-path .eslintignore --ext .ts",
+    "postinstall": "prisma generate",
     "lint-fix": "npx eslint src --fix",
     "prettier ": "prettier --ignore-path .gitignore --write \"./src/**/*.+(js|ts|json)\"",
     "test": "echo \"Error: no test specified\" && exit 1"

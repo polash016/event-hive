@@ -3,6 +3,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+/* eslint-disable no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const http_status_1 = __importDefault(require("http-status"));
@@ -31,6 +34,10 @@ app.get('/', (req, res) => {
 });
 app.use('/api/v1', routes_1.default);
 app.use(globalErrorHandler_1.default);
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).send('Something broke!');
+});
 app.use((req, res) => {
     res.status(http_status_1.default.NOT_FOUND).json({
         success: false,
