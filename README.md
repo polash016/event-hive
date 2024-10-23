@@ -59,14 +59,6 @@ STRIPE_SECRET_KEY=your_stripe_secret_key
  npm run dev
 ```
 
-## Feedback
-
-If you have any feedback, please reach out to us at fake@fake.com
-
-## Documentation
-
-[Documentation](https://linktodocumentation)
-
 ## Models
 
 - User: Stores user data, including Google sign-in support.
