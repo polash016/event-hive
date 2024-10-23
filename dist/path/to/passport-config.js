@@ -21,7 +21,7 @@ const auth_service_1 = require("../../app/modules/auth/auth.service");
 passport_1.default.use(new passport_google_oauth20_1.Strategy({
     clientID: config_1.default.google_client_id, //process.env.GOOGLE_CLIENT_ID!,
     clientSecret: config_1.default.google_client_secret, // process.env.GOOGLE_CLIENT_SECRET!,
-    callbackURL: 'https://event-hive-srm9.onrender.com/api/v1/auth/google/callback',
+    callbackURL: 'https://event-hive-two.vercel.app/api/v1/auth/google/callback',
     scope: ['profile', 'email'],
 }, (accessToken, refreshToken, profile, callback) => __awaiter(void 0, void 0, void 0, function* () {
     try {
