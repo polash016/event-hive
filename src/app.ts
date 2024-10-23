@@ -14,7 +14,7 @@ import './path/to/passport-config'
 const app: Application = express()
 
 app.use(
-  cors({ origin: 'https://event-hive-client.vercel.app/', credentials: true }),
+  cors({ origin: 'https://event-hive-client.vercel.app', credentials: true }),
 )
 app.use(cookieParser())
 
