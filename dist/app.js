@@ -16,7 +16,27 @@ const routes_1 = __importDefault(require("./app/routes"));
 const globalErrorHandler_1 = __importDefault(require("./app/middlewares/globalErrorHandler"));
 require("./path/to/passport-config");
 const app = (0, express_1.default)();
+// app.use(
+//   cors({ origin: 'https://event-hive-client.vercel.app', credentials: true }),
+// )
 app.use((0, cors_1.default)({ origin: 'https://event-hive-client.vercel.app', credentials: true }));
+// const allowedOrigins = [
+//   'https://event-hive-client.vercel.app',
+//   'http://localhost:3001', // Include localhost for development
+// ]
+// const corsOptions = {
+//   origin: function (origin: any, callback: any) {
+//     if (!origin) return callback(null, true) // Allow requests with no origin (like mobile apps)
+//     if (allowedOrigins.indexOf(origin) !== -1) {
+//       callback(null, true)
+//     } else {
+//       callback(new Error('Not allowed by CORS'))
+//     }
+//   },
+//   credentials: true,
+//   optionsSuccessStatus: 200,
+// }
+// app.use(cors(corsOptions))
 app.use((0, cookie_parser_1.default)());
 app.use((0, express_session_1.default)({
     secret: 'event_hive_secret_key',

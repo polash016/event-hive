@@ -20,7 +20,6 @@ const sendResponse_1 = __importDefault(require("../../../shared/sendResponse"));
 const payment_service_1 = require("./payment.service");
 const initPayment = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
-    console.log('payment controller');
     const { eventId } = req.params;
     const email = (_a = req === null || req === void 0 ? void 0 : req.user) === null || _a === void 0 ? void 0 : _a.email;
     const result = yield payment_service_1.paymentService.initPayment(eventId, email);

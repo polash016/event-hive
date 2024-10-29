@@ -32,7 +32,7 @@ const initPayment = async (id: string, email: string) => {
     success_url: config.ssl_success_url,
     fail_url: config.ssl_fail_url,
     cancel_url: config.ssl_cancel_url,
-    ipn_url: 'http://localhost:3030/ipn',
+    ipn_url: 'https://event-hive-two.vercel.app/api/v1/payment/ipn',
     shipping_method: 'N/A',
     product_name: 'Event.',
     product_category: 'Entertainment',
@@ -141,6 +141,9 @@ const checkoutPaymentSession = async (id: string, email: string) => {
     where: {
       id,
     },
+    include: {
+      images: true,
+    },
   })
 
   await prisma.user.findUniqueOrThrow({
@@ -148,6 +151,28 @@ const checkoutPaymentSession = async (id: string, email: string) => {
       email,
     },
   })
+
+  // const lineItems = [
+  //   {
+  //     price_data: {
+  //       currency: 'usd',
+  //       product_data: {
+  //         name: event.name,
+  //         images: [event.images[0]],
+  //       },
+  //       unit_amount: Number(event.ticketPrice),
+  //     },
+  //     quantity: 1,
+  //   },
+  // ]
+
+  // const session = await stripe.checkout.sessions.create({
+  //   payment_method_types: ['card'],
+  //   line_items: lineItems,
+  //   mode: 'payment',
+  //   success_url: '',
+  //   cancel_url: '',
+  // })
 
   const paymentIntent = await stripe.paymentIntents.create({
     amount: event.ticketPrice * 100,
@@ -266,7 +291,7 @@ const handleSuccessfulPayment = async (paymentIntent: any) => {
   //   where: { id: paymentIntent.metadata.orderId },
   //   data: { paymentStatus: 'PAID' },
   // })
-  console.log({ paymentIntent })
+  console.log('payment intent of webhook', { paymentIntent })
 }
 
 export const paymentService = {

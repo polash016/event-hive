@@ -13,9 +13,35 @@ import './path/to/passport-config'
 
 const app: Application = express()
 
+// app.use(
+//   cors({ origin: 'https://event-hive-client.vercel.app', credentials: true }),
+// )
+
 app.use(
   cors({ origin: 'https://event-hive-client.vercel.app', credentials: true }),
 )
+
+// const allowedOrigins = [
+//   'https://event-hive-client.vercel.app',
+//   'http://localhost:3001', // Include localhost for development
+// ]
+
+// const corsOptions = {
+//   origin: function (origin: any, callback: any) {
+//     if (!origin) return callback(null, true) // Allow requests with no origin (like mobile apps)
+
+//     if (allowedOrigins.indexOf(origin) !== -1) {
+//       callback(null, true)
+//     } else {
+//       callback(new Error('Not allowed by CORS'))
+//     }
+//   },
+//   credentials: true,
+//   optionsSuccessStatus: 200,
+// }
+
+// app.use(cors(corsOptions))
+
 app.use(cookieParser())
 
 app.use(

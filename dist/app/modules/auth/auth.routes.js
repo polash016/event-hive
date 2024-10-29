@@ -16,7 +16,7 @@ router.get('/success', auth_controller_1.authController.googleCallback);
 router.get('/google', passport_1.default.authenticate('google', { scope: ['profile', 'email'] }));
 router.get('/google/callback', passport_1.default.authenticate('google', {
     // successRedirect: '/api/v1/auth/success',
-    failureRedirect: 'http://localhost:3000/login',
+    failureRedirect: 'https://event-hive-client.vercel.app/login',
 }), auth_controller_1.authController.googleCallback);
 router.post('/change-password', (0, auth_1.default)(client_1.UserRole.ATTENDEE, client_1.UserRole.ORGANIZER, client_1.UserRole.ADMIN, client_1.UserRole.SUPER_ADMIN), auth_controller_1.authController.changePassword);
 router.post('/forgot-password', auth_controller_1.authController.forgotPassword);

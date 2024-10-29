@@ -44,7 +44,7 @@ const initPayment = (id, email) => __awaiter(void 0, void 0, void 0, function* (
         success_url: config_1.default.ssl_success_url,
         fail_url: config_1.default.ssl_fail_url,
         cancel_url: config_1.default.ssl_cancel_url,
-        ipn_url: 'http://localhost:3030/ipn',
+        ipn_url: 'https://event-hive-two.vercel.app/api/v1/payment/ipn',
         shipping_method: 'N/A',
         product_name: 'Event.',
         product_category: 'Entertainment',
@@ -142,12 +142,35 @@ const checkoutPaymentSession = (id, email) => __awaiter(void 0, void 0, void 0, 
         where: {
             id,
         },
+        include: {
+            images: true,
+        },
     });
     yield prisma_1.default.user.findUniqueOrThrow({
         where: {
             email,
         },
     });
+    // const lineItems = [
+    //   {
+    //     price_data: {
+    //       currency: 'usd',
+    //       product_data: {
+    //         name: event.name,
+    //         images: [event.images[0]],
+    //       },
+    //       unit_amount: Number(event.ticketPrice),
+    //     },
+    //     quantity: 1,
+    //   },
+    // ]
+    // const session = await stripe.checkout.sessions.create({
+    //   payment_method_types: ['card'],
+    //   line_items: lineItems,
+    //   mode: 'payment',
+    //   success_url: '',
+    //   cancel_url: '',
+    // })
     const paymentIntent = yield stripe_1.stripe.paymentIntents.create({
         amount: event.ticketPrice * 100,
         currency: 'BDT',
@@ -250,7 +273,7 @@ const handleSuccessfulPayment = (paymentIntent) => __awaiter(void 0, void 0, voi
     //   where: { id: paymentIntent.metadata.orderId },
     //   data: { paymentStatus: 'PAID' },
     // })
-    console.log({ paymentIntent });
+    console.log('payment intent of webhook', { paymentIntent });
 });
 exports.paymentService = {
     initPayment,

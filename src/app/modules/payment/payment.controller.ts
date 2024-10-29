@@ -6,7 +6,6 @@ import { paymentService } from './payment.service'
 import { IReqUser } from '../../interfaces/common'
 
 const initPayment = catchAsync(async (req, res) => {
-  console.log('payment controller')
   const { eventId } = req.params
   const email = (req?.user as IReqUser)?.email
   const result = await paymentService.initPayment(eventId, email)

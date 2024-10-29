@@ -33,7 +33,7 @@ const loginUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void
     const result = yield auth_service_1.authServices.loginUser(req.body);
     const { refreshToken } = result, other = __rest(result, ["refreshToken"]);
     res.cookie('refreshToken', refreshToken, {
-        secure: false, // true only in production
+        secure: process.env.NODE_ENV === 'production' ? true : false, // true in production
         httpOnly: true,
     });
     (0, sendResponse_1.default)(res, {
@@ -52,11 +52,11 @@ const googleCallback = (0, catchAsync_1.default)((req, res) => __awaiter(void 0,
             httpOnly: true,
         });
         // Redirect to the frontend with additional user data in query params
-        res.redirect(`http://localhost:3000/login/success?accessToken=${accessToken}`);
+        res.redirect(`https://event-hive-client.vercel.app/login/success?accessToken=${accessToken}`);
     }
     else {
         // If authentication fails, redirect to the login page with an error message
-        res.redirect(`http://localhost:3000/login`);
+        res.redirect(`https://event-hive-client.vercel.app/login`);
     }
 }));
 // const googleCallback = catchAsync(async (req, res) => {
@@ -95,6 +95,7 @@ const googleCallback = (0, catchAsync_1.default)((req, res) => __awaiter(void 0,
 const refreshToken = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     // console.log(req);
     const { refreshToken } = req.cookies;
+    console.log(refreshToken);
     const result = yield auth_service_1.authServices.refreshToken(refreshToken);
     // const { accessToken } = result
     // res.cookie('refreshToken', accessToken, {
