@@ -236,6 +236,38 @@ const getSingleEvent = (id) => __awaiter(void 0, void 0, void 0, function* () {
     });
     return result;
 });
+const getPurchasedEvent = (user) => __awaiter(void 0, void 0, void 0, function* () {
+    const userDetails = yield prisma_1.default.user.findUnique({
+        where: {
+            email: user.email,
+        },
+    });
+    const result = yield prisma_1.default.payment.findMany({
+        where: {
+            userId: userDetails === null || userDetails === void 0 ? void 0 : userDetails.id,
+            paymentStatus: {
+                contains: 'success',
+                mode: 'insensitive',
+            },
+        },
+        include: {
+            event: {
+                include: {
+                    images: true,
+                    location: true,
+                    guest: true,
+                },
+            },
+            user: true,
+        },
+    });
+    return {
+        meta: {
+            total: result.length,
+        },
+        data: result,
+    };
+});
 const updateEvent = (id, req) => __awaiter(void 0, void 0, void 0, function* () {
     const files = req === null || req === void 0 ? void 0 : req.files;
     const data = req === null || req === void 0 ? void 0 : req.body;
@@ -388,4 +420,5 @@ exports.eventServices = {
     getSingleEvent,
     updateEvent,
     deleteEvent,
+    getPurchasedEvent,
 };

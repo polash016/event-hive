@@ -13,11 +13,11 @@ import './path/to/passport-config'
 
 const app: Application = express()
 
-// app.use(
-//   cors({ origin: 'https://event-hive-client.vercel.app', credentials: true }),
-// )
+app.use(
+  cors({ origin: 'https://event-hive-client.vercel.app', credentials: true }),
+)
 
-app.use(cors({ origin: 'http://localhost:3001', credentials: true }))
+// app.use(cors({ origin: 'http://localhost:3001', credentials: true }))
 
 // const allowedOrigins = [
 //   'https://event-hive-client.vercel.app',

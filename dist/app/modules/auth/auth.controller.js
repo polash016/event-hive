@@ -33,9 +33,11 @@ const loginUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void
     const result = yield auth_service_1.authServices.loginUser(req.body);
     const { refreshToken } = result, other = __rest(result, ["refreshToken"]);
     res.cookie('refreshToken', refreshToken, {
-        secure: process.env.NODE_ENV === 'production' ? true : false, // true in production
+        secure: process.env.NODE_ENV === 'production' ? true : false,
         httpOnly: true,
+        sameSite: 'none',
     });
+    console.log('login from', res);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_1.default.OK,
         success: true,
@@ -95,7 +97,8 @@ const googleCallback = (0, catchAsync_1.default)((req, res) => __awaiter(void 0,
 const refreshToken = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     // console.log(req);
     const { refreshToken } = req.cookies;
-    console.log(refreshToken);
+    console.log(req);
+    console.log('refresh token from cookies', refreshToken);
     const result = yield auth_service_1.authServices.refreshToken(refreshToken);
     // const { accessToken } = result
     // res.cookie('refreshToken', accessToken, {

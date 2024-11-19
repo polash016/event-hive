@@ -50,6 +50,16 @@ const getSingleEvent = (0, catchAsync_1.default)((req, res) => __awaiter(void 0,
         data: result,
     });
 }));
+const getMyEvents = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield event_service_1.eventServices.getPurchasedEvent(req.user);
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_1.default.OK,
+        success: true,
+        message: 'Event data fetched!',
+        data: result.data,
+        meta: result.meta,
+    });
+}));
 const updateEvent = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const result = yield event_service_1.eventServices.updateEvent(req.params.id, req);
     (0, sendResponse_1.default)(res, {
@@ -74,4 +84,5 @@ exports.eventController = {
     getSingleEvent,
     updateEvent,
     deleteEvent,
+    getMyEvents,
 };

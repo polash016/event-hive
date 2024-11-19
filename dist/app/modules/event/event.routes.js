@@ -12,6 +12,7 @@ const event_controller_1 = require("./event.controller");
 // import { EventValidation } from './event.validation'
 const fileUploader_1 = require("../../../helpers/fileUploader");
 const router = express_1.default.Router();
+router.get('/my-events', (0, auth_1.default)(client_1.UserRole.ATTENDEE), event_controller_1.eventController.getMyEvents);
 router.get('/', 
 // auth(
 //   UserRole.ADMIN,

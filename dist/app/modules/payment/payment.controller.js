@@ -32,7 +32,6 @@ const initPayment = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, vo
 }));
 const validatePayment = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const result = yield payment_service_1.paymentService.validatePayment(req.query);
-    console.log('validate payment', req.query);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_1.default.OK,
         success: true,
@@ -42,7 +41,7 @@ const validatePayment = (0, catchAsync_1.default)((req, res) => __awaiter(void 0
 }));
 const checkoutPaymentSession = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
-    const { eventId } = req.params;
+    const { eventId } = req.body;
     const email = (_a = req === null || req === void 0 ? void 0 : req.user) === null || _a === void 0 ? void 0 : _a.email;
     const result = yield payment_service_1.paymentService.checkoutPaymentSession(eventId, email);
     (0, sendResponse_1.default)(res, {
@@ -52,20 +51,29 @@ const checkoutPaymentSession = (0, catchAsync_1.default)((req, res) => __awaiter
         data: result,
     });
 }));
-const handleWebhook = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const event = yield payment_service_1.paymentService.constructEvent(req.body, req.headers['stripe-signature']);
-        yield payment_service_1.paymentService.handleWebhookEvent(event);
-        res.sendStatus(200);
-    }
-    catch (error) {
-        console.error('Webhook error:', error.message);
-        res.status(400).send(`Webhook Error: ${error.message}`);
-    }
+const paymentSuccess = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    const result = yield payment_service_1.paymentService.handleSuccessfulPayment(req.body, (_a = req === null || req === void 0 ? void 0 : req.user) === null || _a === void 0 ? void 0 : _a.email);
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_1.default.OK,
+        success: true,
+        message: 'Payment Completed successfully',
+        data: result,
+    });
+}));
+const getAllPayments = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield payment_service_1.paymentService.getMyPayments(req.user.email);
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_1.default.OK,
+        success: true,
+        message: 'Event data fetched!',
+        data: result,
+    });
 }));
 exports.paymentController = {
     initPayment,
     validatePayment,
     checkoutPaymentSession,
-    handleWebhook,
+    paymentSuccess,
+    getAllPayments,
 };
