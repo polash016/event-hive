@@ -16,9 +16,12 @@ const loginUser = catchAsync(async (req, res) => {
   const { refreshToken, ...other } = result
 
   res.cookie('refreshToken', refreshToken, {
-    secure: process.env.NODE_ENV === 'production' ? true : false, // true in production
+    secure: process.env.NODE_ENV === 'production' ? true : false,
     httpOnly: true,
+    sameSite: 'none',
   })
+
+  console.log('login from', res)
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -90,7 +93,9 @@ const googleCallback = catchAsync(async (req, res) => {
 const refreshToken = catchAsync(async (req, res) => {
   // console.log(req);
   const { refreshToken } = req.cookies
-  console.log(refreshToken)
+
+  console.log(req)
+  console.log('refresh token from cookies', refreshToken)
 
   const result = await authServices.refreshToken(refreshToken)
 

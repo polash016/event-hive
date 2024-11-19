@@ -21,8 +21,6 @@ const initPayment = catchAsync(async (req, res) => {
 const validatePayment = catchAsync(async (req, res) => {
   const result = await paymentService.validatePayment(req.query)
 
-  console.log('validate payment', req.query)
-
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -32,8 +30,9 @@ const validatePayment = catchAsync(async (req, res) => {
 })
 
 const checkoutPaymentSession = catchAsync(async (req, res) => {
-  const { eventId } = req.params
+  const { eventId } = req.body
   const email = (req?.user as IReqUser)?.email
+
   const result = await paymentService.checkoutPaymentSession(eventId, email)
 
   sendResponse(res, {
@@ -44,23 +43,37 @@ const checkoutPaymentSession = catchAsync(async (req, res) => {
   })
 })
 
-const handleWebhook = catchAsync(async (req, res) => {
-  try {
-    const event = await paymentService.constructEvent(
-      req.body,
-      req.headers['stripe-signature'] as string,
-    )
-    await paymentService.handleWebhookEvent(event)
-    res.sendStatus(200)
-  } catch (error: any) {
-    console.error('Webhook error:', error.message)
-    res.status(400).send(`Webhook Error: ${error.message}`)
-  }
+const paymentSuccess = catchAsync(async (req, res) => {
+  const result = await paymentService.handleSuccessfulPayment(
+    req.body,
+    (req?.user as IReqUser)?.email,
+  )
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Payment Completed successfully',
+    data: result,
+  })
+})
+
+const getAllPayments = catchAsync(async (req, res) => {
+  const result = await paymentService.getMyPayments(
+    (req.user as IReqUser).email,
+  )
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Event data fetched!',
+    data: result,
+  })
 })
 
 export const paymentController = {
   initPayment,
   validatePayment,
   checkoutPaymentSession,
-  handleWebhook,
+  paymentSuccess,
+  getAllPayments,
 }

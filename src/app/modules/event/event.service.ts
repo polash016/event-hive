@@ -270,6 +270,40 @@ const getSingleEvent = async (id: string): Promise<Event | null> => {
   return result
 }
 
+const getPurchasedEvent = async (user: any) => {
+  const userDetails = await prisma.user.findUnique({
+    where: {
+      email: user.email,
+    },
+  })
+  const result = await prisma.payment.findMany({
+    where: {
+      userId: userDetails?.id,
+      paymentStatus: {
+        contains: 'success',
+        mode: 'insensitive',
+      },
+    },
+    include: {
+      event: {
+        include: {
+          images: true,
+          location: true,
+          guest: true,
+        },
+      },
+      user: true,
+    },
+  })
+
+  return {
+    meta: {
+      total: result.length,
+    },
+    data: result,
+  }
+}
+
 const updateEvent = async (id: string, req: any): Promise<Event | null> => {
   const files = req?.files
   const data = req?.body
@@ -462,4 +496,5 @@ export const eventServices = {
   getSingleEvent,
   updateEvent,
   deleteEvent,
+  getPurchasedEvent,
 }

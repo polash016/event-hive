@@ -16,10 +16,8 @@ const routes_1 = __importDefault(require("./app/routes"));
 const globalErrorHandler_1 = __importDefault(require("./app/middlewares/globalErrorHandler"));
 require("./path/to/passport-config");
 const app = (0, express_1.default)();
-// app.use(
-//   cors({ origin: 'https://event-hive-client.vercel.app', credentials: true }),
-// )
 app.use((0, cors_1.default)({ origin: 'https://event-hive-client.vercel.app', credentials: true }));
+// app.use(cors({ origin: 'http://localhost:3001', credentials: true }))
 // const allowedOrigins = [
 //   'https://event-hive-client.vercel.app',
 //   'http://localhost:3001', // Include localhost for development

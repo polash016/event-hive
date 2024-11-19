@@ -17,9 +17,7 @@ const app: Application = express()
 //   cors({ origin: 'https://event-hive-client.vercel.app', credentials: true }),
 // )
 
-app.use(
-  cors({ origin: 'https://event-hive-client.vercel.app', credentials: true }),
-)
+app.use(cors({ origin: 'http://localhost:3001', credentials: true }))
 
 // const allowedOrigins = [
 //   'https://event-hive-client.vercel.app',
