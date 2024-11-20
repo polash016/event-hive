@@ -8,6 +8,12 @@ import { fileUploader } from '../../../helpers/fileUploader'
 
 const router = express.Router()
 
+router.get(
+  '/sold-events',
+  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.ORGANIZER),
+  eventController.getSoldEvents,
+)
+
 router.get('/my-events', auth(UserRole.ATTENDEE), eventController.getMyEvents)
 
 router.get(

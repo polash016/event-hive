@@ -11,12 +11,16 @@ import sendEmail from '../../../helpers/sendEmail'
 
 const loginUser = async (payload: { email: string; password: string }) => {
   const { email, password } = payload
-  const user = await prisma.user.findUniqueOrThrow({
+  const user = await prisma.user.findUnique({
     where: {
       email,
       status: UserStatus.ACTIVE,
     },
   })
+
+  if (!user) {
+    throw new AppError(httpStatus.UNAUTHORIZED, 'Invalid email or password')
+  }
 
   const isPasswordCorrect = await bcrypt.compare(
     password,

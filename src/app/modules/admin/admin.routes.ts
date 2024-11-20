@@ -14,6 +14,12 @@ router.get(
 )
 
 router.get(
+  '/statistics',
+  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
+  adminController.getAdminStatistics,
+)
+
+router.get(
   '/:id',
   auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
   adminController.getSingleAdmin,

@@ -5,6 +5,7 @@ import { TPaginationOptions } from '../../interfaces/pagination'
 import calculatePagination from '../../../helpers/paginationHelper'
 import { organizerSearchFields } from './organizer.constant'
 import prisma from '../../../shared/prisma'
+import { eventSearchFields } from '../event/event.constant'
 
 const getAllOrganizer = async (
   params: TOrganizerFilterRequest,
@@ -95,6 +96,150 @@ const getSingleOrganizer = async (id: string): Promise<User | null> => {
   return result
 }
 
+const getOrganizerStat = async (email: string) => {
+  const user = await prisma.user.findUniqueOrThrow({
+    where: {
+      email,
+      status: UserStatus.ACTIVE,
+    },
+    select: {
+      id: true,
+    },
+  })
+
+  const currentMonthStart = new Date()
+  currentMonthStart.setDate(1)
+  currentMonthStart.setHours(0, 0, 0, 0)
+
+  const currentMonthEnd = new Date(currentMonthStart)
+  currentMonthEnd.setMonth(currentMonthEnd.getMonth() + 1)
+  currentMonthEnd.setHours(0, 0, 0, 0)
+
+  const total = await prisma.payment.aggregate({
+    _sum: {
+      amount: true,
+    },
+    where: {
+      paymentStatus: 'success',
+      event: {
+        organizerId: user.id,
+      },
+    },
+  })
+
+  const currentMonthRevenue = await prisma.payment.aggregate({
+    _sum: {
+      amount: true,
+    },
+    where: {
+      paymentStatus: 'success',
+      event: {
+        organizerId: user.id,
+      },
+      createdAt: {
+        gte: currentMonthStart,
+        lt: currentMonthEnd,
+      },
+    },
+  })
+
+  const totalSuccessfulTransactions = await prisma.payment.count({
+    where: {
+      paymentStatus: 'success',
+      event: {
+        organizerId: user.id,
+      },
+    },
+  })
+
+  const totalTicketSold = await prisma.event.aggregate({
+    _sum: {
+      ticketSold: true,
+    },
+    where: {
+      organizerId: user.id,
+    },
+  })
+
+  const data = {
+    totalRevenue: total._sum.amount,
+    currentMonthRevenue: currentMonthRevenue._sum.amount,
+    totalSuccessfulTransactions,
+    totalTicketSold: totalTicketSold._sum.ticketSold,
+  }
+
+  return data
+}
+
+const getMyEvents = async (email: string, query: Record<string, any>) => {
+  const andConditions: Prisma.EventWhereInput[] = []
+
+  if (query?.searchTerm) {
+    andConditions.push({
+      OR: [
+        ...eventSearchFields
+          .map(field => ({
+            [field]: {
+              contains: query.searchTerm,
+              mode: 'insensitive',
+            },
+          }))
+          .filter(Boolean),
+        {
+          guest: {
+            name: {
+              contains: query.searchTerm,
+              mode: 'insensitive',
+            },
+          },
+        },
+
+        {
+          location: {
+            city: {
+              contains: query.searchTerm,
+              mode: 'insensitive',
+            },
+          },
+        },
+      ],
+    })
+  }
+
+  andConditions.push({
+    organizer: {
+      email,
+    },
+  })
+
+  andConditions.push({
+    isDeleted: false,
+  })
+
+  const whereConditions: Prisma.EventWhereInput = { AND: andConditions }
+
+  const result = await prisma.event.findMany({
+    where: {
+      ...whereConditions,
+      organizer: {
+        status: UserStatus.ACTIVE,
+      },
+    },
+    include: {
+      images: true,
+      location: true,
+      guest: true,
+      categories: {
+        include: {
+          category: true,
+        },
+      },
+    },
+  })
+
+  return result
+}
+
 const updateOrganizer = async (
   id: string,
   payload: Partial<Organizer>,
@@ -149,4 +294,6 @@ export const organizerServices = {
   getSingleOrganizer,
   updateOrganizer,
   softDeleteOrganizer,
+  getOrganizerStat,
+  getMyEvents,
 }

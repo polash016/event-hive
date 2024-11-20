@@ -35,8 +35,21 @@ const getAllEvent = catchAsync(async (req, res) => {
     meta: result.meta,
   })
 })
+
 const getSingleEvent = catchAsync(async (req, res) => {
   const result = await eventServices.getSingleEvent(req.params.id)
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Event data fetched!',
+    data: result,
+  })
+})
+
+const getSoldEvents = catchAsync(async (req, res) => {
+  console.log('user........')
+  const result = await eventServices.getSoldEvents(req.user as IReqUser)
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -87,4 +100,5 @@ export const eventController = {
   updateEvent,
   deleteEvent,
   getMyEvents,
+  getSoldEvents,
 }

@@ -21,8 +21,6 @@ const loginUser = catchAsync(async (req, res) => {
     sameSite: 'none',
   })
 
-  console.log('login from', res)
-
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -93,9 +91,6 @@ const googleCallback = catchAsync(async (req, res) => {
 const refreshToken = catchAsync(async (req, res) => {
   // console.log(req);
   const { refreshToken } = req.cookies
-
-  console.log(req)
-  console.log('refresh token from cookies', refreshToken)
 
   const result = await authServices.refreshToken(refreshToken)
 

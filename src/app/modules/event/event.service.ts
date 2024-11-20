@@ -9,6 +9,7 @@ import { fileUploader } from '../../../helpers/fileUploader'
 import { add, format } from 'date-fns'
 import AppError from '../../errors/AppError'
 import httpStatus from 'http-status'
+import { IReqUser } from '../../interfaces/common'
 
 const createEvent = async (req: any) => {
   const files = req?.files
@@ -259,11 +260,57 @@ const getSingleEvent = async (id: string): Promise<Event | null> => {
       images: true,
       location: true,
       guest: true,
+      payment: true,
       categories: {
         include: {
           category: true,
         },
       },
+    },
+  })
+
+  return result
+}
+
+const getSoldEvents = async (user: IReqUser) => {
+  // const wherCondition = {
+  //   payment: {
+  //     every: {
+  //       paymentStatus: 'success',
+  //     },
+  //   },
+  // }
+
+  // if (user.role === 'ORGANIZER') {
+  //   wherCondition.user = {
+  //     some: {
+  //       email: user.email,
+  //     },
+  //   }
+  // }
+  console.log(user)
+  const result = await prisma.event.findMany({
+    where: {
+      payment: {
+        some: {
+          paymentStatus: 'success',
+        },
+      },
+    },
+    include: {
+      payment: {
+        where: {
+          paymentStatus: 'success',
+        },
+      },
+      // location: true,
+      // guest: true,
+      // categories: {
+      //   include: {
+      //     category: true,
+      //   },
+      // },
+      // images: true,
     },
   })
 
@@ -497,4 +544,5 @@ export const eventServices = {
   updateEvent,
   deleteEvent,
   getPurchasedEvent,
+  getSoldEvents,
 }

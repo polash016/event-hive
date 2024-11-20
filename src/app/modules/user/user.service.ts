@@ -140,6 +140,7 @@ const getAllUsers = async (params: any, options: TPaginationOptions) => {
       })),
     })
   }
+
   andConditions.push({
     status: 'ACTIVE',
   })

@@ -10,12 +10,7 @@ const router = express.Router()
 
 router.get(
   '/',
-  auth(
-    UserRole.ATTENDEE,
-    UserRole.ORGANIZER,
-    UserRole.ADMIN,
-    UserRole.SUPER_ADMIN,
-  ),
+  auth(UserRole.ORGANIZER, UserRole.ADMIN, UserRole.SUPER_ADMIN),
   userController.getAllUsers,
 )
 

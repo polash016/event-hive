@@ -8,6 +8,14 @@ import { OrganizerValidation } from './organizer.validation'
 const router = express.Router()
 
 router.get(
+  '/statistics',
+  auth(UserRole.ORGANIZER),
+  organizerController.getOrganizerStat,
+)
+
+router.get('/events', auth(UserRole.ORGANIZER), organizerController.getMyEvents)
+
+router.get(
   '/',
   // auth(UserRole.ADMIN, UserRole.SUPER_ADMIN),
   organizerController.getOrganizers,

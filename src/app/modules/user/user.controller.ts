@@ -43,7 +43,6 @@ const createAttendee = catchAsync(async (req: Request, res: Response) => {
 const getAllUsers = catchAsync(async (req, res) => {
   const filters = pick(req.query, userSearchableField)
   const options = pick(req.query, ['limit', 'page', 'sortBy', 'sortOrder'])
-  console.log(req.query, { filters }, options)
 
   const result = await userService.getAllUsers(filters, options)
 

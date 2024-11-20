@@ -78,6 +78,59 @@ const getSingleAdmin = async (id: string): Promise<Admin | null> => {
   return result
 }
 
+const getAdminStatistics = async () => {
+  const currentMonthStart = new Date()
+  currentMonthStart.setDate(1)
+  currentMonthStart.setHours(0, 0, 0, 0)
+
+  const currentMonthEnd = new Date(currentMonthStart)
+  currentMonthEnd.setMonth(currentMonthEnd.getMonth() + 1)
+  currentMonthEnd.setHours(0, 0, 0, 0)
+
+  const total = await prisma.payment.aggregate({
+    _sum: {
+      amount: true,
+    },
+    where: {
+      paymentStatus: 'success',
+    },
+  })
+
+  const currentMonthRevenue = await prisma.payment.aggregate({
+    _sum: {
+      amount: true,
+    },
+    where: {
+      paymentStatus: 'success',
+      createdAt: {
+        gte: currentMonthStart,
+        lt: currentMonthEnd,
+      },
+    },
+  })
+
+  const totalSuccessfulTransactions = await prisma.payment.count({
+    where: {
+      paymentStatus: 'success',
+    },
+  })
+
+  const totalTicketSold = await prisma.event.aggregate({
+    _sum: {
+      ticketSold: true,
+    },
+  })
+
+  const data = {
+    totalRevenue: total._sum.amount,
+    currentMonthRevenue: currentMonthRevenue._sum.amount,
+    totalSuccessfulTransactions,
+    totalTicketSold: totalTicketSold._sum.ticketSold,
+  }
+
+  return data
+}
+
 const updateAdmin = async (
   id: string,
   payload: Partial<Admin>,
@@ -154,4 +207,5 @@ export const adminServices = {
   updateAdmin,
   deleteAdmin,
   softDeleteAdmin,
+  getAdminStatistics,
 }
